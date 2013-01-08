@@ -26,6 +26,8 @@ from sqlalchemy.orm import (
     relationship
     )
 
+from sqlalchemy.orm.exc import NoResultFound
+
 from zope.sqlalchemy import ZopeTransactionExtension
 
 import pytz, datetime
@@ -68,6 +70,26 @@ class User(Tablename, Base):
     @classmethod
     def get_user(cls, username):
         return cls.query.filter(cls.username == username).one()
+
+    @classmethod
+    def new(cls, username, password, email=None):
+        user = cls(username=username, email=email)
+        login = PasswordLogin(user=user)
+        login.change_password(password)
+        return user
+
+    def check_password(self, candidate):
+        return self.login.check_password(candidate)
+
+    @property
+    def login(self):
+        return self.logins[0]
+
+    def for_json(self):
+        return {
+            u'username': self.username,
+            u'email': self.email,
+        }
 
 class Login(Tablename, Base):
     __mapper_args__ = {'polymorphic_on': 'discriminator'}

@@ -37,6 +37,8 @@ setup(name='strifescript',
       test_suite='strifescript',
       install_requires=requires,
       entry_points="""\
+      [nose.plugins.0.10]
+      pyramid_cfg = strifescript.tests.plugin:ConfiguringPlugin
       [paste.app_factory]
       main = strifescript:main
       [console_scripts]
