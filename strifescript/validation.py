@@ -24,6 +24,9 @@ class Registration(MappingSchema):
     email = SchemaNode(String(), validator=All(Email(), Length(min=3, max=254)), missing=None)
     password = SchemaNode(String(), validator=Length(min=5))
 
+class PlausiblePasswordLogin(MappingSchema):
+    username = SchemaNode(String(), validator=Length(max=50))
+    password = SchemaNode(String(), validator=Length(min=5))
 
 def _add_messages(md, key, error_node):
     for msg in error_node.messages():
@@ -38,4 +41,10 @@ def collect_errors(error_exc):
     for child in error_exc.children:
         key = child.node.name
         _add_messages(collected, key, child)
+    return collected.dict_of_lists()
+
+def auth_errors():
+    collected = MultiDict()
+    collected.add('username', u'Invalid username or password.')
+    collected.add('password', u'Invalid username or password.')
     return collected.dict_of_lists()
