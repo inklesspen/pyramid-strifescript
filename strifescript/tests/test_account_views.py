@@ -119,3 +119,19 @@ class TestLogin(BaseTest):
 
         response = request.response
         assert 400 == response.code
+
+class TestLogout(BaseTest):
+    def test_logout(self):
+        self.add_fixtures(fix.UserData)
+        user = User.query.first()
+
+        header_key = 'Sample-Header'
+        header_value = 'value'
+        policy = self.config.testing_securitypolicy(userid=user.login.id, forget_result=[(header_key, header_value)])
+
+        request = testing.DummyRequest(method='POST')
+        actual = views.logout(request)
+
+        expected = {}
+        assert expected == actual
+        assert policy.forgotten

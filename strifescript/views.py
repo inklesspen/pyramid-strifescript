@@ -50,3 +50,8 @@ def login(request):
     headers = security.remember(request, user.login.id)
     request.response.headers = headers
     return {u'current_user': user.username}
+
+def logout(request):
+    headers = security.forget(request)
+    request.response.headers = headers
+    return {}
