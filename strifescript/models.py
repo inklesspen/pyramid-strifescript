@@ -65,7 +65,9 @@ class User(Tablename, Base):
     events = relationship('Event', backref='user')
 
     def __repr__(self):
-        return "<User(%d, '%s')>" %(self.id, self.username)
+        if self.id is None:
+            return "<User('%s', unsaved=True>" % self.username
+        return "<User(%d, '%s')>" % (self.id, self.username)
 
     @classmethod
     def get_user(cls, username):
@@ -110,13 +112,15 @@ class PasswordLogin(Login, Tablename):
         return bcrypt.hashpw(candidate, self.password_hash) == self.password_hash
 
     def change_password(self, new_password):
-        self.password_hash = bcrypt.hashpw(new_password, bcrypt.gensalt(PasswordLogin.bcrypt_difficulty))
+        self.password_hash = PasswordLogin.generate_password_hash(new_password)
 
     # For testing purposes:
     bcrypt_difficulty = 12
+
     @classmethod
-    def set_bcrypt_difficulty(cls, new_difficulty):
-        cls.bcrypt_difficulty = new_difficulty
+    def generate_password_hash(cls, new_password, difficulty=None):
+        difficulty = cls.bcrypt_difficulty if difficulty is None else difficulty
+        return bcrypt.hashpw(new_password, bcrypt.gensalt(difficulty))
 
 
 class Team(Tablename, Base):

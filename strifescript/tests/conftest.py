@@ -14,7 +14,7 @@ from ..models import DBSession, Base, PasswordLogin
 @pytest.fixture(scope='session', autouse=True)
 def set_bcrypt_difficulty():
     # The default difficulty is good for regular use, but slows down the tests too much.
-    PasswordLogin.set_bcrypt_difficulty(2)
+    PasswordLogin.bcrypt_difficulty = 2
 
 @pytest.fixture(scope='session')
 def appsettings(request):
@@ -23,7 +23,7 @@ def appsettings(request):
     settings = get_appsettings(config_uri)
     return settings
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session')
 def sqlengine(request, appsettings):
     engine = engine_from_config(appsettings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
@@ -34,6 +34,22 @@ def sqlengine(request, appsettings):
 
     request.addfinalizer(teardown)
     return engine
+
+@pytest.fixture()
+def dbtransaction(request, sqlengine):
+    DBSession.remove()
+    connection = sqlengine.connect()
+    transaction = connection.begin()
+    DBSession.configure(bind=connection)
+
+    def teardown():
+        transaction.rollback()
+        connection.close()
+        DBSession.remove()
+
+    request.addfinalizer(teardown)
+
+    return connection
 
 def pytest_addoption(parser):
     parser.addoption("--ini", action="store", metavar="INI_FILE", help="use INI_FILE to configure SQLAlchemy")

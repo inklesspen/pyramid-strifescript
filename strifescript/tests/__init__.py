@@ -12,19 +12,6 @@ from ..models import (
 import pytest
 
 class BaseTest(object):
-    @pytest.fixture(autouse=True)
-    def dbtransaction(self, request, sqlengine):
-        DBSession.remove()
-        connection = sqlengine.connect()
-        transaction = connection.begin()
-        DBSession.configure(bind=connection)
-
-        def teardown():
-            transaction.rollback()
-            connection.close()
-            DBSession.remove()
-
-        request.addfinalizer(teardown)
 
     def setup_method(self, method):
         self._patchers = []
