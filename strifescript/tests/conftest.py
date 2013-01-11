@@ -37,7 +37,6 @@ def sqlengine(request, appsettings):
 
 @pytest.fixture()
 def dbtransaction(request, sqlengine):
-    DBSession.remove()
     connection = sqlengine.connect()
     transaction = connection.begin()
     DBSession.configure(bind=connection)

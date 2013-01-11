@@ -1,20 +1,13 @@
-from sqlalchemy import engine_from_config
+import pytest
+
+from fixture.loadable import EnvLoadableFixture
+from fixture.style import NamedDataStyle
 
 import transaction
 
 from pyramid import testing
 
-from ..models import (
-    DBSession,
-    Base,
-    )
-
 from .. import models
-
-import pytest
-
-from fixture.loadable import EnvLoadableFixture
-from fixture.style import NamedDataStyle
 
 class LoadOnlyFixture(EnvLoadableFixture):
     def __init__(self, session=None, **kw):
@@ -45,7 +38,7 @@ class LoadOnlyFixture(EnvLoadableFixture):
 dbfixture = LoadOnlyFixture(
     env = models,
     style = NamedDataStyle(),
-    session = DBSession
+    session = models.DBSession
 )
 
 @pytest.mark.usefixtures("dbtransaction")
@@ -63,7 +56,7 @@ class BaseTest(object):
     def add_fixtures(self, *datasets):
         self._fixture_state = dbfixture.data(*datasets)
         self._fixture_state.setup()
-        DBSession.flush()
+        models.DBSession.flush()
 
     def teardown_method(self, method):
         transaction.abort()
