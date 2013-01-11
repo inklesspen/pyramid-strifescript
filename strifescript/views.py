@@ -47,6 +47,7 @@ def login(request):
         request.response = HTTPBadRequest()
         return {u'errors': validation.auth_errors()}
 
+    user.update_last_login()
     headers = security.remember(request, user.id)
     request.response.headers = headers
     return {u'current_user': user.username}

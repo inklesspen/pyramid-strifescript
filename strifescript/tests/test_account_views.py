@@ -11,6 +11,8 @@ from .. import views, validation, models
 from . import BaseTest
 from . import fixtures as fix
 
+from mock import MagicMock, patch, create_autospec
+
 class TestRegistration(BaseTest):
     def test_successful(self):
         assert 0 == User.query.filter_by(username=u"test").count()
@@ -60,6 +62,10 @@ class TestRegistration(BaseTest):
 
 class TestLogin(BaseTest):
     def test_login(self):
+        timestamp = models.utcnow()
+        self.add_patcher(patch.object(models, 'utcnow'))
+        models.utcnow.return_value = timestamp
+
         self.add_fixtures(fix.UserData)
         assert User.query.count() == 1
 
@@ -81,6 +87,7 @@ class TestLogin(BaseTest):
         response = request.response
         assert header_value == response.headers[header_key]
         assert policy.remembered == user.id
+        assert user.last_login == timestamp
 
     def test_bad_password(self):
         self.add_fixtures(fix.UserData)
