@@ -9,12 +9,12 @@ from pyramid.paster import (
     setup_logging,
     )
 
-from ..models import DBSession, Base, PasswordLogin
+from ..models import DBSession, Base, User
 
 @pytest.fixture(scope='session', autouse=True)
 def set_bcrypt_difficulty():
     # The default difficulty is good for regular use, but slows down the tests too much.
-    PasswordLogin.bcrypt_difficulty = 2
+    User.bcrypt_difficulty = 2
 
 @pytest.fixture(scope='session')
 def appsettings(request):

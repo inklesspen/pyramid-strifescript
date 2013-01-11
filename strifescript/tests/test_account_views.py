@@ -5,8 +5,8 @@ from nose import tools as nt
 
 from pyramid import testing
 
-from ..models import DBSession, User, NoResultFound, PasswordLogin
-from .. import views, validation
+from ..models import DBSession, User, NoResultFound
+from .. import views, validation, models
 
 from . import BaseTest
 from . import fixtures as fix
@@ -32,7 +32,7 @@ class TestRegistration(BaseTest):
         assert user.check_password(u"test password")
 
         assert header_value == response.headers[header_key]
-        assert policy.remembered == user.login.id
+        assert policy.remembered == user.id
 
         expected = {
             u'user': {
@@ -65,7 +65,7 @@ class TestLogin(BaseTest):
 
         request_body = {
             'username': fix.UserData.foo_user.username,
-            'password': fix.UserData.foo_user.logins[0]._password
+            'password': fix.UserData.foo_user._password
         }
 
         header_key = 'Sample-Header'
@@ -80,7 +80,7 @@ class TestLogin(BaseTest):
 
         response = request.response
         assert header_value == response.headers[header_key]
-        assert policy.remembered == user.login.id
+        assert policy.remembered == user.id
 
     def test_bad_password(self):
         self.add_fixtures(fix.UserData)
@@ -88,7 +88,7 @@ class TestLogin(BaseTest):
 
         request_body = {
             'username': fix.UserData.foo_user.username,
-            'password': fix.UserData.foo_user.logins[0]._password + "not it"
+            'password': fix.UserData.foo_user._password + "not it"
         }
 
         request = testing.DummyRequest(json_body=request_body, method='POST')
@@ -107,7 +107,7 @@ class TestLogin(BaseTest):
 
         request_body = {
             'username': fix.UserData.foo_user.username + "nobody",
-            'password': fix.UserData.foo_user.logins[0]._password
+            'password': fix.UserData.foo_user._password
         }
 
         request = testing.DummyRequest(json_body=request_body, method='POST')
@@ -127,7 +127,7 @@ class TestLogout(BaseTest):
 
         header_key = 'Sample-Header'
         header_value = 'value'
-        policy = self.config.testing_securitypolicy(userid=user.login.id, forget_result=[(header_key, header_value)])
+        policy = self.config.testing_securitypolicy(userid=user.id, forget_result=[(header_key, header_value)])
 
         request = testing.DummyRequest(method='POST')
         actual = views.logout(request)

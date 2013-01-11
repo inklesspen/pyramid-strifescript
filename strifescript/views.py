@@ -27,13 +27,13 @@ def register(request):
     new_user = User.new(**validated)
     DBSession.add(new_user)
     DBSession.flush()
-    headers = security.remember(request, new_user.login.id)
+    headers = security.remember(request, new_user.id)
     request.response.headers = headers
     return {'user': new_user.for_json()}
 
 def login(request):
     try:
-        validated = validation.PlausiblePasswordLogin().deserialize(request.json_body)
+        validated = validation.PlausibleLogin().deserialize(request.json_body)
     except validation.Invalid, e:
         request.response = HTTPBadRequest()
         return {u'errors': validation.collect_errors(e)}
@@ -47,7 +47,7 @@ def login(request):
         request.response = HTTPBadRequest()
         return {u'errors': validation.auth_errors()}
 
-    headers = security.remember(request, user.login.id)
+    headers = security.remember(request, user.id)
     request.response.headers = headers
     return {u'current_user': user.username}
 

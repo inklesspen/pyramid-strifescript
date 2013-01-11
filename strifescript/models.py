@@ -59,10 +59,12 @@ participants_table = Table('participants', Base.metadata,
 class User(Tablename, Base):
     username = Column(Unicode(50), unique=True, nullable=False)
     email = Column(Unicode(254), unique=True, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+    last_login = Column(DateTime(timezone=True))
     teams = relationship('Team', secondary=participants_table)
-    logins = relationship('Login', backref='user')
     conflicts = association_proxy('teams', 'conflict')
     events = relationship('Event', backref='user')
+    password_hash = Column(String(60), nullable=False)
 
     def __repr__(self):
         if self.id is None:
@@ -76,43 +78,17 @@ class User(Tablename, Base):
     @classmethod
     def new(cls, username, password, email=None):
         user = cls(username=username, email=email)
-        login = PasswordLogin(user=user)
-        login.change_password(password)
+        user.change_password(password)
         return user
-
-    def check_password(self, candidate):
-        return self.login.check_password(candidate)
-
-    @property
-    def login(self):
-        return self.logins[0]
-
-    def for_json(self):
-        return {
-            u'username': self.username,
-            u'email': self.email,
-        }
-
-class Login(Tablename, Base):
-    __mapper_args__ = {'polymorphic_on': 'discriminator'}
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=True, index=True)
-    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
-    last_login = Column(DateTime(timezone=True))
-    discriminator = Column('type', String(50))
 
     def update_last_login(self):
         self.last_login = utcnow()
-
-class PasswordLogin(Login, Tablename):
-    __mapper_args__ = {'polymorphic_identity': 'password'}
-    id = Column(Integer, ForeignKey('logins.id'), primary_key=True)
-    password_hash = Column(String(60), nullable=False)
 
     def check_password(self, candidate):
         return bcrypt.hashpw(candidate, self.password_hash) == self.password_hash
 
     def change_password(self, new_password):
-        self.password_hash = PasswordLogin.generate_password_hash(new_password)
+        self.password_hash = User.generate_password_hash(new_password)
 
     # For testing purposes:
     bcrypt_difficulty = 12
@@ -122,6 +98,11 @@ class PasswordLogin(Login, Tablename):
         difficulty = cls.bcrypt_difficulty if difficulty is None else difficulty
         return bcrypt.hashpw(new_password, bcrypt.gensalt(difficulty))
 
+    def for_json(self):
+        return {
+            u'username': self.username,
+            u'email': self.email,
+        }
 
 class Team(Tablename, Base):
     name = Column(Unicode(100), nullable=False)

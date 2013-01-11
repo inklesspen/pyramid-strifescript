@@ -24,7 +24,7 @@ class Registration(MappingSchema):
     email = SchemaNode(String(), validator=All(Email(), Length(min=3, max=254)), missing=None)
     password = SchemaNode(String(), validator=Length(min=5))
 
-class PlausiblePasswordLogin(MappingSchema):
+class PlausibleLogin(MappingSchema):
     username = SchemaNode(String(), validator=Length(max=50))
     password = SchemaNode(String(), validator=Length(min=5))
 
