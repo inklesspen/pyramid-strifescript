@@ -1,3 +1,5 @@
+import itertools
+
 import bcrypt
 
 from sqlalchemy import (
@@ -111,11 +113,24 @@ class Team(Tablename, Base):
     users = relationship('User', secondary=participants_table)
     events = relationship('Event', backref='team')
 
+    @classmethod
+    def from_validated(cls, validated):
+        return cls(name=validated['name'], notes=validated['notes'], users=validated['participants'])
+
 class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
     teams = relationship('Team', backref='conflict')
-    active = Column(Boolean, nullable=False, default=True)
+    archived = Column(Boolean, nullable=False, default=False)
     events = relationship('Event', backref='conflict')
+
+    @property
+    def users(self):
+        return User.query.join(Team.users).filter(Team.conflict == self)
+
+    @classmethod
+    def from_validated(cls, validated):
+        teams = [Team.from_validated(team) for team in validated['teams']]
+        return cls(name=validated['name'], teams=teams)
 
 # Events
 # Set script for the three volleys of the exchange, for a given team

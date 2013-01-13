@@ -8,6 +8,7 @@ import transaction
 from .models import (
     DBSession,
     User,
+    Conflict,
     NoResultFound
     )
 
@@ -55,4 +56,24 @@ def login(request):
 def logout(request):
     headers = security.forget(request)
     request.response.headers = headers
+    return {}
+
+def create_conflict(request):
+    try:
+        validated = validation.Conflict().bind(current_user=request.current_user).deserialize(request.json_body)
+    except validation.Invalid, e:
+        request.response = HTTPBadRequest()
+        return {u'errors': validation.collect_errors(e)}
+
+    conflict = Conflict.from_validated(validated)
+    DBSession.add(conflict)
+
+    return {}
+
+def archive_conflict(request):
+    conflict = request.context.conflict
+    if conflict.archived:
+        request.response = HTTPBadRequest()
+        return {u'errors': validation.simple_errors(archived=u"Already archived.")}
+    conflict.archived = True
     return {}

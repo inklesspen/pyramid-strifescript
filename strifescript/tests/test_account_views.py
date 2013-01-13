@@ -67,7 +67,6 @@ class TestLogin(BaseTest):
         models.utcnow.return_value = timestamp
 
         self.add_fixtures(fix.UserData)
-        assert User.query.count() == 1
 
         request_body = {
             'username': fix.UserData.foo_user.username,
@@ -91,7 +90,6 @@ class TestLogin(BaseTest):
 
     def test_bad_password(self):
         self.add_fixtures(fix.UserData)
-        assert User.query.count() == 1
 
         request_body = {
             'username': fix.UserData.foo_user.username,
@@ -110,7 +108,6 @@ class TestLogin(BaseTest):
 
     def test_bad_username(self):
         self.add_fixtures(fix.UserData)
-        assert User.query.count() == 1
 
         request_body = {
             'username': fix.UserData.foo_user.username + "nobody",
