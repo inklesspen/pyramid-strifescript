@@ -38,11 +38,48 @@ class TestCreateConflict(BaseTest):
         request = testing.DummyRequest(json_body=request_body, method='POST', current_user=alice)
         actual = views.create_conflict(request)
 
-        expected = {}
-        assert expected == actual
-
         conflict = Conflict.query.one()
         assert conflict.name == request_body['name']
+
+        expected = {'id': conflict.id}
+        assert expected == actual
+
+class TestConflictInfo(BaseTest):
+    def test_get_info(self):
+        self.add_fixtures(fix.ConflictData)
+
+        alice = User.query.filter_by(username=fix.UserData.alice.username).one()
+        conflict = Conflict.query.get(fix.ConflictData.conflict.id)
+
+        request = testing.DummyRequest(method='GET', current_user=alice, matchdict=dict(id=conflict.id))
+        request.context = acl.Conflict(request)
+        actual = views.conflict_info(request)
+        expected = {
+            'id': fix.ConflictData.conflict.id,
+            'name': fix.ConflictData.conflict.name,
+            'teams': [
+                {
+                    'id': fix.TeamData.npc_team.id,
+                    'name': fix.TeamData.npc_team.name,
+                    'notes': fix.TeamData.npc_team.notes,
+                    'participants': [fix.UserData.alice.username],
+                },
+                {
+                    'id': fix.TeamData.pc_team.id,
+                    'name': fix.TeamData.pc_team.name,
+                    'participants': [
+                        fix.UserData.bob.username,
+                        fix.UserData.claire.username,
+                        fix.UserData.danny.username
+                    ],
+                }
+            ],
+            'actions': {
+                fix.TeamData.npc_team.id: ['set-script'],
+                fix.TeamData.pc_team.id: ['set-script'],
+            }
+        }
+        assert expected == actual
 
 class TestArchiveConflict(BaseTest):
     def test_archive(self):

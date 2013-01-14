@@ -18,6 +18,7 @@ from . import validation
 def home(request):
     return {'project': 'strifescript'}
 
+@view_config(route_name='register', renderer='json')
 def register(request):
     try:
         validated = validation.Registration().deserialize(request.json_body)
@@ -32,6 +33,7 @@ def register(request):
     request.response.headers = headers
     return {'user': new_user.for_json()}
 
+@view_config(route_name='login', renderer='json')
 def login(request):
     try:
         validated = validation.PlausibleLogin().deserialize(request.json_body)
@@ -53,11 +55,13 @@ def login(request):
     request.response.headers = headers
     return {u'current_user': user.username}
 
+@view_config(route_name='logout', renderer='json')
 def logout(request):
     headers = security.forget(request)
     request.response.headers = headers
     return {}
 
+@view_config(route_name='conflict', request_method='POST', renderer='json')
 def create_conflict(request):
     try:
         validated = validation.Conflict().bind(current_user=request.current_user).deserialize(request.json_body)
@@ -67,8 +71,14 @@ def create_conflict(request):
 
     conflict = Conflict.from_validated(validated)
     DBSession.add(conflict)
+    DBSession.flush()
 
-    return {}
+    return {'id': conflict.id}
+
+@view_config(route_name='conflict_id', request_method='GET', renderer='json')
+def conflict_info(request):
+    conflict = request.context.conflict
+    return conflict.for_json()
 
 def archive_conflict(request):
     conflict = request.context.conflict

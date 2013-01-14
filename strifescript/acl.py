@@ -1,15 +1,21 @@
-from pyramid.security import Everyone, Authenticated, Allow, Deny, ALL_PERMISSIONS
+from pyramid.security import Everyone, Authenticated, Allow, Deny, ALL_PERMISSIONS, authenticated_userid
 from pyramid.httpexceptions import HTTPNotFound
 
 from . import models
 
 def get_principals(stored_id, request):
     try:
-        login = models.Login.get_by_id(stored_id)
+        login = models.User.query.filter_by(id=stored_id).one()
     except models.NoResultFound, e:
         return None
     principals = [login.id]
     return principals
+
+def get_user(request):
+    user_id = authenticated_userid(request)
+    if user_id is None:
+        return None
+    return models.User.query.get(user_id)
 
 class Base(object):
     __acl__ = [(Allow, Authenticated, 'view')]

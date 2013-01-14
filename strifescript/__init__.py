@@ -8,7 +8,7 @@ from .models import (
     Base,
     )
 
-from .acl import get_principals
+from .acl import get_principals, get_user
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -26,7 +26,15 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
+
+    config.add_request_method(get_user, 'current_user', property=True, reify=True)
+
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
+    config.add_route('register', '/register')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
+    config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
+    config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
     config.scan()
     return config.make_wsgi_app()

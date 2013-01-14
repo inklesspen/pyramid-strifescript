@@ -31,10 +31,12 @@ class UserData(DataSet):
 
 class TeamData(DataSet):
     class npc_team:
+        id = 1
         name = u"NPC Team"
         users = [UserData.alice]
         notes = u"Balrogs and Goblins, oh my"
     class pc_team:
+        id = 2
         name = u"PC Team"
         users = [UserData.bob, UserData.claire, UserData.danny]
 

@@ -1,4 +1,4 @@
-import itertools
+import collections
 
 import bcrypt
 
@@ -117,6 +117,16 @@ class Team(Tablename, Base):
     def from_validated(cls, validated):
         return cls(name=validated['name'], notes=validated['notes'], users=validated['participants'])
 
+    def for_json(self):
+        r = {
+            'id': self.id,
+            'name': self.name,
+            'participants': [user.username for user in self.users]
+        }
+        if self.notes is not None:
+            r['notes'] = self.notes
+        return r
+
 class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
     teams = relationship('Team', backref='conflict')
@@ -131,6 +141,46 @@ class Conflict(Tablename, Base):
     def from_validated(cls, validated):
         teams = [Team.from_validated(team) for team in validated['teams']]
         return cls(name=validated['name'], teams=teams)
+
+    def actions_for_team(self, team):
+        # this can probably be refactored into returning a dict for all the teams
+
+        # shortcut
+        if len(self.events) == 0:
+            return ['set-script']
+
+        last_seen_exchange = max(e.exchange for e in self.events)
+        exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
+        
+        team_script = False
+        script_count = 0
+        reveal = collections.Counter()
+
+        for event in exchange_events:
+            if isinstance(event, SetScriptEvent):
+                script_count += 1
+                if event.team == team:
+                    team_script = True
+            if isinstance(event, RevealVolleyEvent):
+                reveal[event.team] += 1
+
+        actions = []
+        if script_count < len(self.teams) and not team_script:
+            actions.append('set-script')
+        if script_count == len(self.teams):
+            min_reveal = min(reveal[team] for team in self.teams)
+            if min_reveal < 3 and reveal[team] == min_reveal:
+                actions.append('reveal-volley')
+
+        return actions
+
+    def for_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'teams': [team.for_json() for team in self.teams],
+            'actions': {team.id: self.actions_for_team(team) for team in self.teams}
+        }
 
 # Events
 # Set script for the three volleys of the exchange, for a given team
