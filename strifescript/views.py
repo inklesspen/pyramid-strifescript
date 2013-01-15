@@ -78,6 +78,8 @@ def create_conflict(request):
 @view_config(route_name='conflict_id', request_method='GET', renderer='json')
 def conflict_info(request):
     conflict = request.context.conflict
+    # TODO: censoring needs to be a separate step
+    # FYI: the fact that a team can change actions (because it has enough actions to change) is priviliged information and must be censored
     return conflict.for_json()
 
 def archive_conflict(request):
