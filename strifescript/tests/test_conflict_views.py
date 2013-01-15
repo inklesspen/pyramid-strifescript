@@ -1,5 +1,4 @@
 import unittest
-import transaction
 
 from nose import tools as nt
 

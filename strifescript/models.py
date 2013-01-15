@@ -113,6 +113,9 @@ class Team(Tablename, Base):
     users = relationship('User', secondary=participants_table)
     events = relationship('Event', backref='team')
 
+    def __repr__(self):
+        return "<Team(%r, %r, %r)>" % (self.id, self.conflict, self.name)
+
     @classmethod
     def from_validated(cls, validated):
         return cls(name=validated['name'], notes=validated['notes'], users=validated['participants'])
@@ -131,7 +134,10 @@ class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
     teams = relationship('Team', backref='conflict')
     archived = Column(Boolean, nullable=False, default=False)
-    events = relationship('Event', backref='conflict')
+    events = relationship('Event', backref='conflict', order_by='Event.created_at')
+
+    def __repr__(self):
+        return "<Conflict(%r, %r)>" % (self.id, self.name)
 
     @property
     def users(self):
@@ -142,44 +148,91 @@ class Conflict(Tablename, Base):
         teams = [Team.from_validated(team) for team in validated['teams']]
         return cls(name=validated['name'], teams=teams)
 
-    def actions_for_team(self, team):
-        # this can probably be refactored into returning a dict for all the teams
-
-        # shortcut
-        if len(self.events) == 0:
-            return ['set-script']
-
-        last_seen_exchange = max(e.exchange for e in self.events)
-        exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
-        
-        team_script = False
-        script_count = 0
-        reveal = collections.Counter()
+    def generate_exchange(self, exchange_events):
+        team_scripts = {}
+        team_reveals = collections.Counter()
+        team_changes = collections.defaultdict(list)
 
         for event in exchange_events:
             if isinstance(event, SetScriptEvent):
-                script_count += 1
-                if event.team == team:
-                    team_script = True
+                team_scripts[event.team] = event
             if isinstance(event, RevealVolleyEvent):
-                reveal[event.team] += 1
+                team_reveals[event.team] += 1
+            if isinstance(event, ChangeActionsEvent):
+                team_changes[event.team].append(event)
 
-        actions = []
-        if script_count < len(self.teams) and not team_script:
-            actions.append('set-script')
-        if script_count == len(self.teams):
-            min_reveal = min(reveal[team] for team in self.teams)
-            if min_reveal < 3 and reveal[team] == min_reveal:
-                actions.append('reveal-volley')
+        retval = {}
+        for team in self.teams:
+            retval[team.id] = {}
+            sse = team_scripts[team]
+            # We need to make copies of the volley arrays.
+            retval[team.id]['script'] = [sse.volley_1[:], sse.volley_2[:], sse.volley_3[:]]
+            retval[team.id]['revealed'] = team_reveals[team]
+            for event in team_changes[team]:
+                volley = retval[team.id]['script'][event.volley_no - 1]
+                volley.remove(event.forfeited_action)
+                i = volley.index(event.changed_action)
+                volley[i] = event.replacement_action
+
+        return retval
+        
+
+    def generate_history(self):
+        if len(self.events) == 0:
+            return []
+        ee = collections.defaultdict(list)
+        exchanges = set()
+        for event in self.events:
+            exchanges.add(event.exchange)
+            ee[event.exchange].append(event)
+
+        return [self.generate_exchange(ee[exchange]) for exchange in range(1, max(exchanges)+1)]
+ 
+    def allowed_actions(self):
+        # shortcut
+        if len(self.events) == 0:
+            return {team: ['set-script'] for team in self.teams}
+
+        last_seen_exchange = max(e.exchange for e in self.events)
+        exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
+
+        script_teams = set()
+        reveal_teams = collections.Counter()
+
+        for event in exchange_events:
+            if isinstance(event, SetScriptEvent):
+                script_teams.add(event.team)
+            if isinstance(event, RevealVolleyEvent):
+                reveal_teams[event.team] += 1
+
+        min_reveal = min(reveal_teams[team] for team in self.teams)
+        if min_reveal == 3:
+            # All scripts in this exchange have been revealed, new exchange
+            return {team: ['set-script'] for team in self.teams}
+
+        actions = {team: [] for team in self.teams}
+        if len(script_teams) < len(self.teams):
+            for team in self.teams:
+                if team not in script_teams:
+                    actions[team].append('set-script')
+        else:
+            min_reveal = min(reveal_teams[team] for team in self.teams)
+            for team in self.teams:
+                if reveal_teams[team] == min_reveal:
+                    actions[team].append('reveal-volley')
+                    # if any of the unrevealed volleys contain two actions,
+                    # 'change-actions' is allowed. this means we must
+                    # calculate the scripts for the exchange
 
         return actions
 
     def for_json(self):
+        actions = self.allowed_actions()
         return {
             'id': self.id,
             'name': self.name,
             'teams': [team.for_json() for team in self.teams],
-            'actions': {team.id: self.actions_for_team(team) for team in self.teams}
+            'actions': {team.id: actions[team] for team in self.teams}
         }
 
 # Events

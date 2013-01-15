@@ -27,6 +27,9 @@ class LoadOnlyFixture(EnvLoadableFixture):
         def save(self, row, column_vals):
             obj = self.medium()
             for c, val in column_vals:
+                if c.endswith("_array"):
+                    c = c[:-6]
+                    val = val.split("_")
                 setattr(obj, c, val)
             self.session.add(obj)
             return obj
