@@ -65,12 +65,20 @@ class RevealVolleyEventData(DataSet):
         user = UserData.alice
         team = TeamData.npc_team
         exchange = 1
+    class npc_reveal_3:
+        user = UserData.alice
+        team = TeamData.npc_team
+        exchange = 1
     class pc_reveal_1:
         user = UserData.bob
         team = TeamData.pc_team
         exchange = 1
     class pc_reveal_2:
         user = UserData.bob
+        team = TeamData.pc_team
+        exchange = 1
+    class pc_reveal_3:
+        user = UserData.claire
         team = TeamData.pc_team
         exchange = 1
 
@@ -80,17 +88,17 @@ class ChangeActionsEventData(DataSet):
         team = TeamData.pc_team
         exchange = 1
         volley_no = 2
-        forfeited_action = 'action 7'
-        changed_action = 'action 8'
-        replacement_action = 'replacement action 8'
+        forfeited_action = u'action 7'
+        changed_action = u'action 8'
+        replacement_action = u'replacement action 8'
     class pc_change_3:
         user = UserData.bob
         team = TeamData.pc_team
         exchange = 1
         volley_no = 3
-        forfeited_action = 'action 9'
-        changed_action = 'action 10'
-        replacement_action = 'replacement action 10'
+        forfeited_action = u'action 9'
+        changed_action = u'action 10'
+        replacement_action = u'replacement action 10'
 
 class ConflictData(DataSet):
     class conflict:
@@ -115,4 +123,12 @@ class ConflictData(DataSet):
             ChangeActionsEventData.pc_change_2,
             RevealVolleyEventData.npc_reveal_2, RevealVolleyEventData.pc_reveal_2,
             ChangeActionsEventData.pc_change_3,
+        ]
+    class conflict_with_both_scripts_fully_revealed(conflict):
+        id = 5
+        events = [
+            SetScriptEventData.npc_script, SetScriptEventData.pc_script,
+            RevealVolleyEventData.npc_reveal_1, RevealVolleyEventData.pc_reveal_1,
+            RevealVolleyEventData.npc_reveal_2, RevealVolleyEventData.pc_reveal_2,
+            RevealVolleyEventData.npc_reveal_3, RevealVolleyEventData.pc_reveal_3,
         ]
