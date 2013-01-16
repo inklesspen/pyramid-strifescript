@@ -21,8 +21,13 @@ from . import models
 
 from webob.multidict import MultiDict
 
+def username_can_be_registered(node, value):
+    if models.User.user_exists_with_username(value):
+        raise Invalid(node, u"'%s' is already a registered username" % value)
+    return None
+
 class Registration(MappingSchema):
-    username = SchemaNode(String(), validator=Length(max=50))
+    username = SchemaNode(String(), validator=All(Length(max=50), username_can_be_registered))
     email = SchemaNode(String(), validator=All(Email(), Length(min=3, max=254)), missing=None)
     password = SchemaNode(String(), validator=Length(min=5))
 

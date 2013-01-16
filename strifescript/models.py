@@ -74,8 +74,16 @@ class User(Tablename, Base):
         return "<User(%d, '%s')>" % (self.id, self.username)
 
     @classmethod
+    def _user_by_username_query(cls, username):
+        return cls.query.filter(cls.username == username)
+
+    @classmethod
     def get_user(cls, username):
-        return cls.query.filter(cls.username == username).one()
+        return cls._user_by_username_query(username).one()
+
+    @classmethod
+    def user_exists_with_username(cls, username):
+        return cls._user_by_username_query(username).count() == 1
 
     @classmethod
     def new(cls, username, password, email=None):

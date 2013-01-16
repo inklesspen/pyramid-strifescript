@@ -45,6 +45,23 @@ class TestRegistration(BaseTest):
 
         assert expected == actual
 
+    def test_username_already_taken(self):
+        self.add_fixtures(fix.UserData)
+
+        request_body = {
+            'username': fix.UserData.foo_user.username,
+            'password': fix.UserData.foo_user._password
+        }
+
+        request = testing.DummyRequest(json_body=request_body, method='POST')
+        actual = views.register(request)
+
+        expected = {
+            u'errors': {'username': [u"'foo' is already a registered username"]}
+        }
+
+        assert expected == actual
+
     def test_unsuccessful(self):
         assert 0 == User.query.count()
 
