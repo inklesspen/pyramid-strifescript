@@ -171,16 +171,18 @@ class Conflict(Tablename, Base):
 
         retval = {}
         for team in self.teams:
-            retval[team.id] = {}
-            sse = team_scripts[team]
-            # We need to make copies of the volley arrays.
-            retval[team.id]['script'] = [sse.volley_1[:], sse.volley_2[:], sse.volley_3[:]]
-            retval[team.id]['revealed'] = team_reveals[team]
-            for event in team_changes[team]:
-                volley = retval[team.id]['script'][event.volley_no - 1]
-                volley.remove(event.forfeited_action)
-                i = volley.index(event.changed_action)
-                volley[i] = event.replacement_action
+            retval[team.id] = {
+                'revealed': team_reveals[team]
+            }
+            if team in team_scripts:
+                sse = team_scripts[team]
+                # We need to make copies of the volley arrays.
+                retval[team.id]['script'] = [sse.volley_1[:], sse.volley_2[:], sse.volley_3[:]]
+                for event in team_changes[team]:
+                    volley = retval[team.id]['script'][event.volley_no - 1]
+                    volley.remove(event.forfeited_action)
+                    i = volley.index(event.changed_action)
+                    volley[i] = event.replacement_action
 
         return retval
         
@@ -204,19 +206,14 @@ class Conflict(Tablename, Base):
         last_seen_exchange = max(e.exchange for e in self.events)
         exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
 
-        script_teams = set()
-        reveal_teams = collections.Counter()
+        exchange_data = self.generate_exchange(exchange_events)
 
-        for event in exchange_events:
-            if isinstance(event, SetScriptEvent):
-                script_teams.add(event.team)
-            if isinstance(event, RevealVolleyEvent):
-                reveal_teams[event.team] += 1
-
-        min_reveal = min(reveal_teams[team] for team in self.teams)
-        if min_reveal == 3:
+        min_revealed = min(exchange_data[team.id]['revealed'] for team in self.teams)
+        if min_revealed == 3:
             # All scripts in this exchange have been revealed, new exchange
             return {team: ['set-script'] for team in self.teams}
+
+        script_teams = set([team for team in self.teams if 'script' in exchange_data[team.id]])
 
         actions = {team: [] for team in self.teams}
         if len(script_teams) < len(self.teams):
@@ -224,13 +221,15 @@ class Conflict(Tablename, Base):
                 if team not in script_teams:
                     actions[team].append('set-script')
         else:
-            min_reveal = min(reveal_teams[team] for team in self.teams)
+            # calculate script for exchange
             for team in self.teams:
-                if reveal_teams[team] == min_reveal:
+                team_revealed = exchange_data[team.id]['revealed']
+                if team_revealed == min_revealed:
                     actions[team].append('reveal-volley')
-                    # if any of the unrevealed volleys contain two actions,
-                    # 'change-actions' is allowed. this means we must
-                    # calculate the scripts for the exchange
+                script = exchange_data[team.id]['script']
+                unrevealed_volleys = script[team_revealed:]
+                if any([len(volley) > 1 for volley in unrevealed_volleys]):
+                    actions[team].append('change-actions')
 
         return actions
 

@@ -99,9 +99,9 @@ class TestConflictActions(BaseTest):
         npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
 
         sse = SetScriptEvent(user=npc_team.users[0], team=npc_team, conflict=conflict, exchange=1)
-        sse.volley_1 = ['action 1']
-        sse.volley_2 = ['action 2', 'action 3']
-        sse.volley_3 = ['action 4', 'action 5']
+        sse.volley_1 = [u'action 1']
+        sse.volley_2 = [u'action 2', u'action 3']
+        sse.volley_3 = [u'action 4', u'action 5']
         conflict.events.append(sse)
         return conflict
 
@@ -123,13 +123,12 @@ class TestConflictActions(BaseTest):
         pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         sse = SetScriptEvent(user=pc_team.users[0], team=pc_team, conflict=conflict, exchange=1)
-        sse.volley_1 = ['action 6']
-        sse.volley_2 = ['action 7', 'action 8']
-        sse.volley_3 = ['action 9', 'action 10']
+        sse.volley_1 = [u'action 6']
+        sse.volley_2 = [u'action 7', u'action 8']
+        sse.volley_3 = [u'action 9', u'action 10']
         conflict.events.append(sse)
         return conflict
 
-    @pytest.mark.xfail
     def test_with_both_scripts(self):
         conflict = self.get_with_both_scripts()
         npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
@@ -137,8 +136,8 @@ class TestConflictActions(BaseTest):
 
         actual = conflict.allowed_actions()
         expected = {
-            npc_team: ['reveal-volley', 'change-action'],
-            pc_team: ['reveal-volley', 'change-action'],
+            npc_team: ['reveal-volley', 'change-actions'],
+            pc_team: ['reveal-volley', 'change-actions'],
         }
 
         assert expected == actual
