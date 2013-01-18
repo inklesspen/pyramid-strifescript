@@ -140,7 +140,7 @@ class Team(Tablename, Base):
 
 class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
-    teams = relationship('Team', backref='conflict')
+    teams = relationship('Team', backref='conflict', order_by='Team.id')
     archived = Column(Boolean, nullable=False, default=False)
     events = relationship('Event', backref='conflict', order_by='Event.created_at')
 

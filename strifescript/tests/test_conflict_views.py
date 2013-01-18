@@ -1,10 +1,8 @@
-import unittest
-
 from nose import tools as nt
 
 from pyramid import testing
 
-from ..models import DBSession, User, Conflict, NoResultFound
+from ..models import DBSession, User, Conflict, Team, NoResultFound
 from .. import views, validation, models, acl
 
 from . import BaseTest
@@ -14,21 +12,21 @@ from mock import MagicMock, patch, create_autospec
 
 class TestCreateConflict(BaseTest):
     def test_successful_create(self):
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
 
-        alice = User.query.filter_by(username=fix.UserData.alice.username).one()
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
 
         request_body = {
             'name': "The Glorious Battle",
             'teams': [
                 {
                     'name': 'Team A',
-                    'participants': [fix.UserData.alice.username, fix.UserData.bob.username],
+                    'participants': [fix.users.UserData.alice.username, fix.users.UserData.bob.username],
                     'notes': "Alice and Bob's team",
                 },
                 {
                     'name': 'Team 1',
-                    'participants': [fix.UserData.claire.username, fix.UserData.danny.username],
+                    'participants': [fix.users.UserData.claire.username, fix.users.UserData.danny.username],
                     'notes': "The other guys",
                 },
             ]
@@ -45,47 +43,52 @@ class TestCreateConflict(BaseTest):
 
 class TestConflictInfo(BaseTest):
     def test_get_info(self):
-        self.add_fixtures(fix.ConflictData)
+        self.add_fixtures(fix.bare_conflict.ConflictData)
 
-        alice = User.query.filter_by(username=fix.UserData.alice.username).one()
-        conflict = Conflict.query.get(fix.ConflictData.conflict.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+
+        conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
+
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         request = testing.DummyRequest(method='GET', current_user=alice, matchdict=dict(id=conflict.id))
         request.context = acl.Conflict(request)
         actual = views.conflict_info(request)
         expected = {
-            'id': fix.ConflictData.conflict.id,
-            'name': fix.ConflictData.conflict.name,
+            'id': fix.bare_conflict.ConflictData.conflict.id,
+            'name': fix.bare_conflict.ConflictData.conflict.name,
             'teams': [
                 {
-                    'id': fix.TeamData.npc_team.id,
-                    'name': fix.TeamData.npc_team.name,
-                    'notes': fix.TeamData.npc_team.notes,
-                    'participants': [fix.UserData.alice.username],
+                    'id': npc_team.id,
+                    'name':npc_team.name,
+                    'notes': npc_team.notes,
+                    'participants': [fix.users.UserData.alice.username],
                 },
                 {
-                    'id': fix.TeamData.pc_team.id,
-                    'name': fix.TeamData.pc_team.name,
+                    'id': pc_team.id,
+                    'name': pc_team.name,
                     'participants': [
-                        fix.UserData.bob.username,
-                        fix.UserData.claire.username,
-                        fix.UserData.danny.username
+                        fix.users.UserData.bob.username,
+                        fix.users.UserData.claire.username,
+                        fix.users.UserData.danny.username
                     ],
                 }
             ],
             'action_choices': {
-                fix.TeamData.npc_team.id: ['set-script'],
-                fix.TeamData.pc_team.id: ['set-script'],
+                npc_team.id: ['set-script'],
+                pc_team.id: ['set-script'],
             }
         }
         assert expected == actual
 
 class TestArchiveConflict(BaseTest):
     def test_archive(self):
-        self.add_fixtures(fix.ConflictData)
+        self.add_fixtures(fix.bare_conflict.ConflictData)
 
-        alice = User.query.filter_by(username=fix.UserData.alice.username).one()
-        conflict = Conflict.query.get(fix.ConflictData.conflict.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+
+        conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert not conflict.archived
 
         request_body = {
@@ -95,14 +98,14 @@ class TestArchiveConflict(BaseTest):
         request.context = acl.Conflict(request)
         actual = views.archive_conflict(request)
 
-        conflict = Conflict.query.get(fix.ConflictData.conflict.id)
+        conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert conflict.archived
 
     def test_already_archived(self):
-        self.add_fixtures(fix.ConflictData)
+        self.add_fixtures(fix.archived_conflict.ConflictData)
 
-        alice = User.query.filter_by(username=fix.UserData.alice.username).one()
-        conflict = Conflict.query.get(fix.ConflictData.conflict_archived.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        conflict = Conflict.query.get(fix.archived_conflict.ConflictData.conflict.id)
         assert conflict.archived
 
         request_body = {

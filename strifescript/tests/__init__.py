@@ -57,9 +57,9 @@ class BaseTest(object):
         return patcher
 
     def add_fixtures(self, *datasets):
-        self._fixture_state = dbfixture.data(*datasets)
-        self._fixture_state.setup()
-        models.DBSession.flush()
+        with transaction.manager:
+            self._fixture_state = dbfixture.data(*datasets)
+            self._fixture_state.setup()
 
     def teardown_method(self, method):
         transaction.abort()

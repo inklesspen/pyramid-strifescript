@@ -1,4 +1,3 @@
-import unittest
 import transaction
 
 from nose import tools as nt
@@ -13,11 +12,10 @@ from mock import MagicMock, patch, create_autospec
 
 class TestCensorExchange(BaseTest):
     def test_pc_team(self):
-        self.add_fixtures(fix.ConflictData)
-
-        conflict = Conflict.query.get(fix.ConflictData.conflict_with_event_changes.id)
-        npc_team = Team.query.get(fix.TeamData.npc_team.id)
-        pc_team = Team.query.get(fix.TeamData.pc_team.id)
+        self.add_fixtures(fix.conflict_with_changes.ConflictData)
+        conflict = Conflict.query.get(fix.conflict_with_changes.ConflictData.conflict_with_event_changes.id)
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         raw = conflict.generate_history()
         exchange = raw[0]
@@ -44,11 +42,10 @@ class TestCensorExchange(BaseTest):
         assert expected == actual
 
     def test_npc_team(self):
-        self.add_fixtures(fix.ConflictData)
-
-        conflict = Conflict.query.get(fix.ConflictData.conflict_with_event_changes.id)
-        npc_team = Team.query.get(fix.TeamData.npc_team.id)
-        pc_team = Team.query.get(fix.TeamData.pc_team.id)
+        self.add_fixtures(fix.conflict_with_changes.ConflictData)
+        conflict = Conflict.query.get(fix.conflict_with_changes.ConflictData.conflict_with_event_changes.id)
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         raw = conflict.generate_history()
         exchange = raw[0]

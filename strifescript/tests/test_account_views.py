@@ -1,4 +1,3 @@
-import unittest
 import transaction
 
 from nose import tools as nt
@@ -46,11 +45,11 @@ class TestRegistration(BaseTest):
         assert expected == actual
 
     def test_username_already_taken(self):
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
 
         request_body = {
-            'username': fix.UserData.foo_user.username,
-            'password': fix.UserData.foo_user._password
+            'username': fix.users.UserData.foo_user.username,
+            'password': fix.users.UserData.foo_user._password
         }
 
         request = testing.DummyRequest(json_body=request_body, method='POST')
@@ -83,11 +82,11 @@ class TestLogin(BaseTest):
         self.add_patcher(patch.object(models, 'utcnow'))
         models.utcnow.return_value = timestamp
 
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
 
         request_body = {
-            'username': fix.UserData.foo_user.username,
-            'password': fix.UserData.foo_user._password
+            'username': fix.users.UserData.foo_user.username,
+            'password': fix.users.UserData.foo_user._password
         }
 
         header_key = 'Sample-Header'
@@ -106,11 +105,11 @@ class TestLogin(BaseTest):
         assert user.last_login == timestamp
 
     def test_bad_password(self):
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
 
         request_body = {
-            'username': fix.UserData.foo_user.username,
-            'password': fix.UserData.foo_user._password + "not it"
+            'username': fix.users.UserData.foo_user.username,
+            'password': fix.users.UserData.foo_user._password + "not it"
         }
 
         request = testing.DummyRequest(json_body=request_body, method='POST')
@@ -124,11 +123,11 @@ class TestLogin(BaseTest):
         assert 400 == response.code
 
     def test_bad_username(self):
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
 
         request_body = {
-            'username': fix.UserData.foo_user.username + "nobody",
-            'password': fix.UserData.foo_user._password
+            'username': fix.users.UserData.foo_user.username + "nobody",
+            'password': fix.users.UserData.foo_user._password
         }
 
         request = testing.DummyRequest(json_body=request_body, method='POST')
@@ -143,7 +142,7 @@ class TestLogin(BaseTest):
 
 class TestLogout(BaseTest):
     def test_logout(self):
-        self.add_fixtures(fix.UserData)
+        self.add_fixtures(fix.users.UserData)
         user = User.query.first()
 
         header_key = 'Sample-Header'
