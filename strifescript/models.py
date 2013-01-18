@@ -240,7 +240,7 @@ class Conflict(Tablename, Base):
             'id': self.id,
             'name': self.name,
             'teams': [team.for_json() for team in self.teams],
-            'actions': {team.id: actions[team] for team in self.teams}
+            'action_choices': {team.id: actions[team] for team in self.teams}
         }
 
 # Events

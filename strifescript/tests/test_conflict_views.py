@@ -73,7 +73,7 @@ class TestConflictInfo(BaseTest):
                     ],
                 }
             ],
-            'actions': {
+            'action_choices': {
                 fix.TeamData.npc_team.id: ['set-script'],
                 fix.TeamData.pc_team.id: ['set-script'],
             }
