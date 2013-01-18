@@ -12,9 +12,15 @@ from pyramid.paster import (
 from ..models import DBSession, Base, User
 
 @pytest.fixture(scope='session', autouse=True)
-def set_bcrypt_difficulty():
+def set_bcrypt_difficulty(request):
     # The default difficulty is good for regular use, but slows down the tests too much.
+    old_difficulty = User.bcrypt_difficulty
     User.bcrypt_difficulty = 2
+    
+    def teardown():
+        User.bcrypt_difficulty = old_difficulty
+
+    request.addfinalizer(teardown)
 
 @pytest.fixture(scope='session')
 def appsettings(request):
@@ -26,17 +32,19 @@ def appsettings(request):
 @pytest.fixture(scope='session')
 def sqlengine(request, appsettings):
     engine = engine_from_config(appsettings, 'sqlalchemy.')
-    DBSession.configure(bind=engine)
-    Base.metadata.create_all(engine)
-
-    def teardown():
-        Base.metadata.drop_all(engine)
-
-    request.addfinalizer(teardown)
     return engine
 
+@pytest.fixture(scope='session')
+def dbtables(request, sqlengine):
+    Base.metadata.create_all(sqlengine)
+
+    def teardown():
+        Base.metadata.drop_all(sqlengine)
+
+    request.addfinalizer(teardown)
+
 @pytest.fixture()
-def dbtransaction(request, sqlengine):
+def dbtransaction(request, sqlengine, dbtables):
     connection = sqlengine.connect()
     transaction = connection.begin()
     DBSession.configure(bind=connection)
