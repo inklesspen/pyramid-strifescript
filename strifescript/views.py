@@ -8,7 +8,9 @@ import transaction
 from .models import (
     DBSession,
     User,
+    Team,
     Conflict,
+    SetScriptEvent,
     NoResultFound
     )
 
@@ -80,6 +82,38 @@ def conflict_info(request):
     conflict = request.context.conflict
     # TODO: censoring needs to be a separate step
     # FYI: the fact that a team can change actions (because it has enough actions to change) is priviliged information and must be censored
+    return conflict.for_json()
+
+@view_config(route_name='conflict.action', request_method='POST', renderer='json')
+def conflict_action(request):
+    conflict = request.context.conflict
+    try:
+        validated = validation.TeamAuthorization().bind(current_user=request.current_user, current_conflict=request.context.conflict).deserialize(request.json_body)
+    except validation.Invalid, e:
+        request.response = HTTPBadRequest()
+        return {u'errors': validation.collect_errors(e)}
+
+    team = validated['team']
+    allowed_actions = conflict.allowed_actions()[team]
+    if validated['action'] not in allowed_actions:
+        request.response = HTTPBadRequest()
+        return {u'errors': validation.simple_errors(dict(action=u"That action is not allowed for that team"))}
+
+    if validated['action'] == 'set-script':
+        try:
+            validated = validation.SetScriptEvent().deserialize(request.json_body)
+        except validation.Invalid, e:
+            request.response = HTTPBadRequest()
+            return {u'errors': validation.collect_errors(e)}
+        validated['team'] = team
+        validated['exchange'] = conflict.current_exchange()
+        event = SetScriptEvent.from_validated(validated)
+    else:
+        raise NotImplementedError()
+
+    event.user = request.current_user
+    event.conflict = conflict
+    DBSession.add(event)
     return conflict.for_json()
 
 def archive_conflict(request):

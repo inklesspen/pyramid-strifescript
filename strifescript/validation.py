@@ -76,6 +76,50 @@ class Conflict(MappingSchema):
     name = colander.SchemaNode(colander.String(), validator=colander.Length(1))
     teams = colander.SchemaNode(colander.Sequence(), Team(), validator=deferred_team_validation)
 
+def can_act_for_team_validation(user):
+    def validator(node, value):
+        if user in value.users:
+            return None
+        raise colander.Invalid(node, "Current user must be on the specified team")
+    return validator
+
+def team_is_in_conflict_validation(conflict):
+    def validator(node, value):
+        if conflict is value.conflict:
+            return None
+        raise colander.Invalid(node, "The specified team must be in the current conflict")
+    return validator
+
+@colander.deferred
+def deferred_check_team(node, kw):
+    user = kw.get('current_user')
+    if user is None:
+        raise Exception('must bind current_user')
+    conflict = kw.get('current_conflict')
+    if conflict is None:
+        raise Exception('must bind current_conflict')
+    return colander.All(can_act_for_team_validation(user), team_is_in_conflict_validation(conflict))
+
+class TeamById(object):
+    def serialize(self, node, appstruct):
+        raise NotImplementedError()
+    def deserialize(self, node, cstruct):
+        if cstruct is colander.null:
+            return colander.null
+        if not isinstance(cstruct, int):
+            raise colander.Invalid(node, "%r is not an integer" % cstruct)
+        try:
+            value = models.Team.query.filter_by(id=cstruct).one()
+        except models.NoResultFound, e:
+            raise colander.Invalid(node, "%r is not a valid team id" % cstruct)
+        return value
+
+class TeamAuthorization(MappingSchema):
+    action = colander.SchemaNode(colander.String(), validator=colander.OneOf(['set-script', 'reveal-volley', 'change-actions']))
+    team = colander.SchemaNode(TeamById(), validator=deferred_check_team)
+
+class SetScriptEvent(MappingSchema):
+    script = colander.SchemaNode(colander.Sequence(), colander.SchemaNode(colander.Sequence(), colander.SchemaNode(colander.String()), validator=colander.Length(min=1)), validator=colander.Length(min=3, max=3))
 
 def _add_messages(md, key, error_node):
     for msg in error_node.messages():

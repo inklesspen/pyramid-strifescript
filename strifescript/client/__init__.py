@@ -61,3 +61,15 @@ def view_conflict(id):
     if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
         r.raise_for_status()
     return r.json()
+
+def set_script(conflict_id, team_id, script):
+    url = base + "/conflict/" + str(conflict_id) + "/action"
+    body = {
+        'action': 'set-script',
+        'team': team_id,
+        'script': script
+    }
+    r = s.post(url, json.dumps(body), headers=headers)
+    if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
+        r.raise_for_status()
+    return r.json()

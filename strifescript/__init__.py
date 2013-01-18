@@ -36,5 +36,6 @@ def main(global_config, **settings):
     config.add_route('logout', '/logout')
     config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
     config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
+    config.add_route('conflict.action', '/conflict/{id}/action', factory='strifescript.acl.Conflict')
     config.scan()
     return config.make_wsgi_app()

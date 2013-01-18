@@ -233,6 +233,22 @@ class Conflict(Tablename, Base):
 
         return actions
 
+    def current_exchange(self):
+        # shortcut
+        if len(self.events) == 0:
+            return 1
+
+        last_seen_exchange = max(e.exchange for e in self.events)
+        exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
+
+        exchange_data = self.generate_exchange(exchange_events)
+
+        min_revealed = min(exchange_data[team.id]['revealed'] for team in self.teams)
+        if min_revealed == 3:
+            # All scripts have been revealed, new exchange
+            return last_seen_exchange + 1
+        return last_seen_exchange
+
     def for_json(self):
         actions = self.allowed_actions()
         return {
@@ -271,6 +287,14 @@ class SetScriptEvent(Event, Tablename):
     volley_1 = Column(postgresql.ARRAY(UnicodeText), nullable=False)
     volley_2 = Column(postgresql.ARRAY(UnicodeText), nullable=False)
     volley_3 = Column(postgresql.ARRAY(UnicodeText), nullable=False)
+
+    @classmethod
+    def from_validated(cls, validated):
+        return cls(team = validated['team'],
+                   exchange = validated['exchange'],
+                   volley_1 = validated['script'][0],
+                   volley_2 = validated['script'][1],
+                   volley_3 = validated['script'][2])
 
 class RevealVolleyEvent(Event):
     # which volley is to be revealed can be determined simply by counting how many revealvolleyevents there are for the team and exchange
