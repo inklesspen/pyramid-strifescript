@@ -167,35 +167,7 @@ class TestConflictAction(BaseTest):
         request = testing.DummyRequest(json_body=request_body, method='POST', current_user=alice, matchdict=dict(id=conflict.id))
         request.context = acl.Conflict(request)
         actual = views.conflict_action(request)
-
-        assert conflict.id == actual['id']
-        assert conflict.name == actual['name']
-        
-        expected_teams = [
-                {
-                    'id': npc_team.id,
-                    'name': npc_team.name,
-                    'notes': npc_team.notes,
-                    'participants': [fix.users.UserData.alice.username],
-                },
-                {
-                    'id': pc_team.id,
-                    'name': pc_team.name,
-                    'participants': [
-                        fix.users.UserData.bob.username,
-                        fix.users.UserData.claire.username,
-                        fix.users.UserData.danny.username
-                    ],
-                }
-            ]
-        assert expected_teams == actual['teams']
-
-        expected_action_choices = [
-            [npc_team, []],
-            [pc_team, ['set-script']]
-        ]
-
-        assert expected_action_choices == actual['action_choices']
+        assert {} == actual
 
         conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert len(conflict.events) == 1

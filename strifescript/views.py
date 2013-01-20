@@ -117,7 +117,7 @@ def conflict_action(request):
     event.user = request.current_user
     event.conflict = conflict
     DBSession.add(event)
-    return conflict.for_json()
+    return {}
 
 def archive_conflict(request):
     conflict = request.context.conflict
