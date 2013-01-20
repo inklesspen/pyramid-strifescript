@@ -15,10 +15,10 @@ from mock import MagicMock, patch, create_autospec
 # Let's start with constructing history out of the event log
 class TestConflictHistory(BaseTest):
     def test(self):
-        self.add_fixtures(fix.conflict_with_scripts.ConflictData)
-        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict_with_both_scripts.id)
-        npc_team = Team.query.get(fix.conflict_with_scripts.TeamData.npc_team.id)
-        pc_team = Team.query.get(fix.conflict_with_scripts.TeamData.pc_team.id)
+        self.add_fixtures(fix.conflict_with_reveals.ConflictData)
+        conflict = Conflict.query.get(fix.conflict_with_reveals.ConflictData.conflict.id)
+        npc_team = Team.query.get(fix.conflict_with_reveals.TeamData.npc_team.id)
+        pc_team = Team.query.get(fix.conflict_with_reveals.TeamData.pc_team.id)
 
         expected = [
             {

@@ -50,4 +50,6 @@ class ConflictData(DataSet):
         teams = [TeamData.npc_team, TeamData.pc_team]
         events = [
             SetScriptEventData.npc_script, SetScriptEventData.pc_script,
+            RevealVolleyEventData.npc_reveal_1, RevealVolleyEventData.pc_reveal_1,
+            RevealVolleyEventData.npc_reveal_2
         ]
