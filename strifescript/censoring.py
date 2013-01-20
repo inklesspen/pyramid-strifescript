@@ -12,3 +12,11 @@ def censor_exchange(exchange, team):
 
 def censor_conflict_history(conflict_history, team):
     return [censor_exchange(exchange, team) for exchange in conflict_history]
+
+def censor_allowed_actions(actions, team):
+    retval = {}
+    for team_id in actions.keys():
+        retval[team_id] = actions[team_id][:]
+        if team.id != team_id and 'change-actions' in retval[team_id]:
+            retval[team_id].remove('change-actions')
+    return retval

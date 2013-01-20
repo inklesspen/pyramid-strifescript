@@ -70,3 +70,36 @@ class TestCensorExchange(BaseTest):
         }
 
         assert expected == actual
+
+class TestCensorActions(BaseTest):
+    def test(self):
+        self.add_fixtures(fix.bare_conflict.ConflictData)
+        npc_team = Team.query.get(1)
+        pc_team = Team.query.get(2)
+
+        actions = {
+            npc_team.id: ['set-script'],
+            pc_team.id: ['set-script']
+        }
+
+        assert actions == censoring.censor_allowed_actions(actions, npc_team)
+        assert actions == censoring.censor_allowed_actions(actions, pc_team)
+
+        actions = {
+            npc_team.id: ['reveal-volley', 'change-actions'],
+            pc_team.id: ['reveal-volley', 'change-actions']
+        }
+
+        expected = {
+            npc_team.id: ['reveal-volley', 'change-actions'],
+            pc_team.id: ['reveal-volley']
+        }
+
+        assert expected == censoring.censor_allowed_actions(actions, npc_team)
+
+        expected = {
+            npc_team.id: ['reveal-volley'],
+            pc_team.id: ['reveal-volley', 'change-actions']
+        }
+
+        assert expected == censoring.censor_allowed_actions(actions, pc_team)
