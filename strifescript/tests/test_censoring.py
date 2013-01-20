@@ -64,6 +64,42 @@ class TestCensorExchange(BaseTest):
 
         assert expected == actual
 
+    def test_with_uneven_reveals(self):
+        self.add_fixtures(fix.conflict_with_reveals.ConflictData)
+        # The NPC team has issued two reveals, but the PC team has only issued one.
+        # The PC team cannot see the NPCs' second volley until they reveal theirs.
+
+        conflict = Conflict.query.get(fix.conflict_with_reveals.ConflictData.conflict.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
+
+        raw = conflict.generate_history()
+        exchange = raw[0]
+
+        for team_status in exchange:
+            if team_status.team is npc_team:
+                assert team_status.status['revealed'] == 2
+            if team_status.team is pc_team:
+                assert team_status.status['revealed'] == 1
+
+        assert claire in pc_team.users and claire not in npc_team.users
+        actual = censoring.censor_exchange(exchange, claire)
+
+        expected = [
+            TeamStatus(npc_team,
+                       {'revealed': 2,
+                        'script': [[u'action 1'], u'<redacted>', u'<redacted>']}),
+            TeamStatus(pc_team,
+                       {'revealed': 1,
+                        'script': [[u'action 6'],
+                                   [u'action 7', u'action 8'],
+                                   [u'action 9', u'action 10']]})
+        ]
+
+        assert expected == actual
+
 class TestCensorActions(BaseTest):
     def test_simple_case(self):
         self.add_fixtures(fix.bare_conflict.ConflictData)

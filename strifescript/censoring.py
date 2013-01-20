@@ -4,12 +4,12 @@ from .models import TeamStatus
 
 def censor_exchange(exchange, user):
     retval = []
+    min_reveal = min(team_status.status['revealed'] for team_status in exchange)
     for team_status in exchange:
         # The status must be deepcopied so we don't modify the original list.
         status_to_censor = copy.deepcopy(team_status.status)
         if team_status.team not in user.teams:
-            revealed_count = status_to_censor['revealed']
-            for i in range(revealed_count, len(status_to_censor['script'])):
+            for i in range(min_reveal, len(status_to_censor['script'])):
                 status_to_censor['script'][i] = u'<redacted>'
         retval.append(TeamStatus(team_status.team, status_to_censor))
     return retval
