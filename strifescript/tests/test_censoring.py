@@ -13,45 +13,42 @@ from . import fixtures as fix
 from mock import MagicMock, patch, create_autospec
 
 class TestCensorExchange(BaseTest):
-    def test_pc_team(self):
+    def test_for_pc_team(self):
         self.add_fixtures(fix.conflict_with_changes.ConflictData)
         conflict = Conflict.query.get(fix.conflict_with_changes.ConflictData.conflict_with_event_changes.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
         npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
         pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         raw = conflict.generate_history()
         exchange = raw[0]
-        actual = censoring.censor_exchange(exchange, pc_team)
-        expected = {
-            npc_team.id: {
-                'script': [
-                    [u'action 1'],
-                    [u'action 2', 'action 3'],
-                    u'<redacted>'
-                ],
-                'revealed': 2
-            },
-            pc_team.id: {
-                'script': [
-                    [u'action 6'],
-                    [u'replacement action 8'],
-                    [u'replacement action 10']
-                ],
-                'revealed': 2
-            }
-        }
+        assert claire not in npc_team.users and claire in pc_team.users
+        actual = censoring.censor_exchange(exchange, claire)
+
+        expected = [[npc_team,
+                     {'revealed': 2,
+                      'script': [[u'action 1'], [u'action 2', u'action 3'], u'<redacted>']}],
+                    [pc_team,
+                     {'revealed': 2,
+                      'script': [[u'action 6'],
+                                 [u'replacement action 8'],
+                                 [u'replacement action 10']]}]]
 
         assert expected == actual
 
-    def test_npc_team(self):
+    def test_for_npc_team(self):
         self.add_fixtures(fix.conflict_with_changes.ConflictData)
         conflict = Conflict.query.get(fix.conflict_with_changes.ConflictData.conflict_with_event_changes.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
         npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
         pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
 
         raw = conflict.generate_history()
         exchange = raw[0]
-        actual = censoring.censor_exchange(exchange, npc_team)
+        assert alice not in pc_team.users and alice in npc_team.users
+        actual = censoring.censor_exchange(exchange, alice)
         expected = {
             npc_team.id: {
                 'script': [
@@ -70,6 +67,17 @@ class TestCensorExchange(BaseTest):
                 'revealed': 2
             }
         }
+
+        expected = [[npc_team,
+                     {'revealed': 2,
+                      'script': [[u'action 1'],
+                                 [u'action 2', u'action 3'], 
+                                 [u'action 4', u'action 5']]}],
+                    [pc_team,
+                     {'revealed': 2,
+                      'script': [[u'action 6'],
+                                 [u'replacement action 8'],
+                                 u'<redacted>']}]]
 
         assert expected == actual
 

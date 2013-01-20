@@ -84,6 +84,7 @@ def conflict_info(request):
     # FYI: the fact that a team can change actions (because it has enough actions to change) is priviliged information and must be censored
     info = conflict.for_json()
     info['action_choices'] = censoring.censor_allowed_actions(info['action_choices'], request.current_user)
+    info['exchanges'] = censoring.censor_conflict_history(info['exchanges'], request.current_user)
     return info
 
 @view_config(route_name='conflict.action', request_method='POST', renderer='json')

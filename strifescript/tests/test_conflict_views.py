@@ -1,4 +1,4 @@
-import json
+import json, pytest
 
 from nose import tools as nt
 
@@ -87,7 +87,10 @@ class TestConflictInfo(BaseTest):
 
         assert expected_action_choices == actual['action_choices']
 
-    def test_complicated_conflict(self):
+        expected_exchanges = []
+        assert expected_exchanges == actual['exchanges']
+
+    def test_conflict_with_scripts(self):
         self.add_fixtures(fix.conflict_with_scripts.ConflictData)
         alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
 
@@ -129,6 +132,22 @@ class TestConflictInfo(BaseTest):
         ]
 
         assert expected_action_choices == actual['action_choices']
+
+        # But let's make sure that's actually a choice the PC team has:
+        assert 'change-actions' in conflict.allowed_actions()[pc_team]
+
+        expected_exchanges = [
+            [
+                [npc_team,
+                 {'revealed': 0,
+                  'script': [[u'action 1'],
+                             [u'action 2', u'action 3'],
+                             [u'action 4', u'action 5']]}],
+                [pc_team,
+                 {'revealed': 0,
+                  'script': [u'<redacted>', u'<redacted>', u'<redacted>']}]]]
+
+        assert expected_exchanges == actual['exchanges']
 
 class TestConflictAction(BaseTest):
     def test_set_script(self):
@@ -194,6 +213,14 @@ class TestConflictAction(BaseTest):
                 'revealed': 0
             }
         }
+
+        expected = [[npc_team,
+                     {'revealed': 0,
+                      'script': [[u'action 1'],
+                                 [u'action 2', u'action 3'], 
+                                 [u'action 4', u'action 5']]}],
+                    [pc_team,
+                     {'revealed': 0}]]
 
         assert expected == conflict.generate_history()[0]
 
