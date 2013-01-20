@@ -73,3 +73,14 @@ def set_script(conflict_id, team_id, script):
     if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
         r.raise_for_status()
     return r.json()
+
+def reveal_volley(conflict_id, team_id):
+    url = base + "/conflict/" + str(conflict_id) + "/action"
+    body = {
+        'action': 'reveal-volley',
+        'team': team_id
+    }
+    r = s.post(url, json.dumps(body), headers=headers)
+    if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
+        r.raise_for_status()
+    return r.json()

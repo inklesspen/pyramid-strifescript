@@ -11,6 +11,7 @@ from .models import (
     Team,
     Conflict,
     SetScriptEvent,
+    RevealVolleyEvent,
     NoResultFound
     )
 
@@ -102,6 +103,8 @@ def conflict_action(request):
         request.response = HTTPBadRequest()
         return {u'errors': validation.simple_errors(dict(action=u"That action is not allowed for that team"))}
 
+    current_exchange = conflict.current_exchange()
+
     if validated['action'] == 'set-script':
         try:
             validated = validation.SetScriptEvent().deserialize(request.json_body)
@@ -109,8 +112,11 @@ def conflict_action(request):
             request.response = HTTPBadRequest()
             return {u'errors': validation.collect_errors(e)}
         validated['team'] = team
-        validated['exchange'] = conflict.current_exchange()
+        validated['exchange'] = current_exchange
         event = SetScriptEvent.from_validated(validated)
+    elif validated['action'] == 'reveal-volley':
+        # No additional data needed.
+        event = RevealVolleyEvent.from_validated({'team': team, 'exchange': current_exchange})
     else:
         raise NotImplementedError()
 

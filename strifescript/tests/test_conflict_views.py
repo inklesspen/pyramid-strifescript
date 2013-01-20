@@ -183,6 +183,39 @@ class TestConflictAction(BaseTest):
 
         assert expected == conflict.generate_history()[0]
 
+    def test_reveal_volley(self):
+        self.add_fixtures(fix.conflict_with_scripts.ConflictData)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
+
+        request_body = {
+            'action': 'reveal-volley',
+            'team': npc_team.id
+        }
+        request_body = json.loads(json.dumps(request_body))
+        request = testing.DummyRequest(json_body=request_body, method='POST', current_user=alice, matchdict=dict(id=conflict.id))
+        request.context = acl.Conflict(request)
+        actual = views.conflict_action(request)
+        assert {} == actual
+
+        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+        assert len(conflict.events) == 3
+
+        expected = [TeamStatus(npc_team,
+                     {'revealed': 1,
+                      'script': [[u'action 1'],
+                                 [u'action 2', u'action 3'], 
+                                 [u'action 4', u'action 5']]}),
+                    TeamStatus(pc_team,
+                     {'revealed': 0,
+                      'script': [[u'action 6'],
+                                 [u'action 7', u'action 8'],
+                                 [u'action 9', u'action 10']]})]
+
+        assert expected == conflict.generate_history()[0]
+
 class TestArchiveConflict(BaseTest):
     def test_archive(self):
         self.add_fixtures(fix.bare_conflict.ConflictData)
