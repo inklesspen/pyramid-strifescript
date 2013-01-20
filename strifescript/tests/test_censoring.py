@@ -1,5 +1,7 @@
 import transaction
 
+import pytest
+
 from nose import tools as nt
 
 from ..models import DBSession, User, Conflict, Team, SetScriptEvent, NoResultFound
@@ -72,34 +74,39 @@ class TestCensorExchange(BaseTest):
         assert expected == actual
 
 class TestCensorActions(BaseTest):
-    def test(self):
+    def test_simple_case(self):
         self.add_fixtures(fix.bare_conflict.ConflictData)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
         npc_team = Team.query.get(1)
         pc_team = Team.query.get(2)
 
-        actions = {
-            npc_team.id: ['set-script'],
-            pc_team.id: ['set-script']
-        }
+        actions = [
+            [npc_team, ['set-script']],
+            [pc_team, ['set-script']]
+        ]
 
-        assert actions == censoring.censor_allowed_actions(actions, npc_team)
-        assert actions == censoring.censor_allowed_actions(actions, pc_team)
+        assert actions == censoring.censor_allowed_actions(actions, alice)
+        assert actions == censoring.censor_allowed_actions(actions, claire)
 
-        actions = {
-            npc_team.id: ['reveal-volley', 'change-actions'],
-            pc_team.id: ['reveal-volley', 'change-actions']
-        }
+        actions = [
+            [npc_team, ['reveal-volley', 'change-actions']],
+            [pc_team, ['reveal-volley', 'change-actions']]
+        ]
 
-        expected = {
-            npc_team.id: ['reveal-volley', 'change-actions'],
-            pc_team.id: ['reveal-volley']
-        }
+        expected = [
+            [npc_team, ['reveal-volley', 'change-actions']],
+            [pc_team, ['reveal-volley']]
+        ]
 
-        assert expected == censoring.censor_allowed_actions(actions, npc_team)
+        assert alice in npc_team.users and alice not in pc_team.users
+        assert expected == censoring.censor_allowed_actions(actions, alice)
 
-        expected = {
-            npc_team.id: ['reveal-volley'],
-            pc_team.id: ['reveal-volley', 'change-actions']
-        }
+        expected = [
+            [npc_team, ['reveal-volley']],
+            [pc_team, ['reveal-volley', 'change-actions']]
+        ]
 
-        assert expected == censoring.censor_allowed_actions(actions, pc_team)
+        assert claire in pc_team.users and claire not in npc_team.users
+        actual = censoring.censor_allowed_actions(actions, claire)
+        assert expected == actual

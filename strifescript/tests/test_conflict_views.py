@@ -57,13 +57,14 @@ class TestConflictInfo(BaseTest):
         request = testing.DummyRequest(method='GET', current_user=alice, matchdict=dict(id=conflict.id))
         request.context = acl.Conflict(request)
         actual = views.conflict_info(request)
-        expected = {
-            'id': fix.bare_conflict.ConflictData.conflict.id,
-            'name': fix.bare_conflict.ConflictData.conflict.name,
-            'teams': [
+
+        assert conflict.id == actual['id']
+        assert conflict.name == actual['name']
+        
+        expected_teams = [
                 {
                     'id': npc_team.id,
-                    'name':npc_team.name,
+                    'name': npc_team.name,
                     'notes': npc_team.notes,
                     'participants': [fix.users.UserData.alice.username],
                 },
@@ -76,13 +77,58 @@ class TestConflictInfo(BaseTest):
                         fix.users.UserData.danny.username
                     ],
                 }
-            ],
-            'action_choices': {
-                npc_team.id: ['set-script'],
-                pc_team.id: ['set-script'],
-            }
-        }
-        assert expected == actual
+            ]
+        assert expected_teams == actual['teams']
+
+        expected_action_choices = [
+            [npc_team, ['set-script']],
+            [pc_team, ['set-script']]
+        ]
+
+        assert expected_action_choices == actual['action_choices']
+
+    def test_complicated_conflict(self):
+        self.add_fixtures(fix.conflict_with_scripts.ConflictData)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+
+        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
+
+        request = testing.DummyRequest(method='GET', current_user=alice, matchdict=dict(id=conflict.id))
+        request.context = acl.Conflict(request)
+        actual = views.conflict_info(request)
+
+        assert conflict.id == actual['id']
+        assert conflict.name == actual['name']
+        
+        expected_teams = [
+                {
+                    'id': npc_team.id,
+                    'name': npc_team.name,
+                    'notes': npc_team.notes,
+                    'participants': [fix.users.UserData.alice.username],
+                },
+                {
+                    'id': pc_team.id,
+                    'name': pc_team.name,
+                    'participants': [
+                        fix.users.UserData.bob.username,
+                        fix.users.UserData.claire.username,
+                        fix.users.UserData.danny.username
+                    ],
+                }
+            ]
+        assert expected_teams == actual['teams']
+
+        # Alice is on the NPC team; she shouldn't see that the PC team can change actions
+        expected_action_choices = [
+            [npc_team, ['reveal-volley', 'change-actions']],
+            [pc_team, ['reveal-volley']]
+        ]
+
+        assert expected_action_choices == actual['action_choices']
 
 class TestConflictAction(BaseTest):
     def test_set_script(self):
@@ -103,10 +149,10 @@ class TestConflictAction(BaseTest):
         request.context = acl.Conflict(request)
         actual = views.conflict_action(request)
 
-        expected = {
-            'id': conflict.id,
-            'name': conflict.name,
-            'teams': [
+        assert conflict.id == actual['id']
+        assert conflict.name == actual['name']
+        
+        expected_teams = [
                 {
                     'id': npc_team.id,
                     'name': npc_team.name,
@@ -122,13 +168,15 @@ class TestConflictAction(BaseTest):
                         fix.users.UserData.danny.username
                     ],
                 }
-            ],
-            'action_choices': {
-                npc_team.id: [],
-                pc_team.id: ['set-script'],
-            }
-        }
-        assert expected == actual
+            ]
+        assert expected_teams == actual['teams']
+
+        expected_action_choices = [
+            [npc_team, []],
+            [pc_team, ['set-script']]
+        ]
+
+        assert expected_action_choices == actual['action_choices']
 
         conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert len(conflict.events) == 1

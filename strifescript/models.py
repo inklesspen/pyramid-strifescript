@@ -68,6 +68,9 @@ class User(Tablename, Base):
     events = relationship('Event', backref='user')
     password_hash = Column(String(60), nullable=False)
 
+    def __json__(self, request):
+        return self.username
+
     def __repr__(self):
         if self.id is None:
             return "<User('%s', unsaved=True>" % self.username
@@ -120,6 +123,9 @@ class Team(Tablename, Base):
     notes = Column(UnicodeText, nullable=True)
     users = relationship('User', secondary=participants_table)
     events = relationship('Event', backref='team')
+
+    def __json__(self, request):
+        return self.id
 
     def __repr__(self):
         return "<Team(%r, %r, %r)>" % (self.id, self.conflict, self.name)
@@ -255,7 +261,7 @@ class Conflict(Tablename, Base):
             'id': self.id,
             'name': self.name,
             'teams': [team.for_json() for team in self.teams],
-            'action_choices': {team.id: actions[team] for team in self.teams}
+            'action_choices': [[team, actions[team]] for team in self.teams]
         }
 
 # Events

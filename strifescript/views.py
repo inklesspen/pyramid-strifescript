@@ -14,7 +14,7 @@ from .models import (
     NoResultFound
     )
 
-from . import validation
+from . import validation, censoring
 
 @view_config(route_name='home', renderer='mytemplate.mako')
 def home(request):
@@ -82,7 +82,9 @@ def conflict_info(request):
     conflict = request.context.conflict
     # TODO: censoring needs to be a separate step
     # FYI: the fact that a team can change actions (because it has enough actions to change) is priviliged information and must be censored
-    return conflict.for_json()
+    info = conflict.for_json()
+    info['action_choices'] = censoring.censor_allowed_actions(info['action_choices'], request.current_user)
+    return info
 
 @view_config(route_name='conflict.action', request_method='POST', renderer='json')
 def conflict_action(request):
