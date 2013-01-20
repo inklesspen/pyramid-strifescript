@@ -5,6 +5,7 @@ import pytest
 from nose import tools as nt
 
 from ..models import DBSession, User, Conflict, Team, SetScriptEvent, NoResultFound
+from ..models import TeamStatus
 from .. import views, validation, models, acl, censoring
 
 from . import BaseTest
@@ -26,14 +27,14 @@ class TestCensorExchange(BaseTest):
         assert claire not in npc_team.users and claire in pc_team.users
         actual = censoring.censor_exchange(exchange, claire)
 
-        expected = [[npc_team,
+        expected = [TeamStatus(npc_team,
                      {'revealed': 2,
-                      'script': [[u'action 1'], [u'action 2', u'action 3'], u'<redacted>']}],
-                    [pc_team,
+                      'script': [[u'action 1'], [u'action 2', u'action 3'], u'<redacted>']}),
+                    TeamStatus(pc_team,
                      {'revealed': 2,
                       'script': [[u'action 6'],
                                  [u'replacement action 8'],
-                                 [u'replacement action 10']]}]]
+                                 [u'replacement action 10']]})]
 
         assert expected == actual
 
@@ -49,35 +50,17 @@ class TestCensorExchange(BaseTest):
         exchange = raw[0]
         assert alice not in pc_team.users and alice in npc_team.users
         actual = censoring.censor_exchange(exchange, alice)
-        expected = {
-            npc_team.id: {
-                'script': [
-                    [u'action 1'],
-                    [u'action 2', u'action 3'],
-                    [u'action 4', u'action 5']
-                ],
-                'revealed': 2
-            },
-            pc_team.id: {
-                'script': [
-                    [u'action 6'],
-                    [u'replacement action 8'],
-                    u'<redacted>'
-                ],
-                'revealed': 2
-            }
-        }
 
-        expected = [[npc_team,
+        expected = [TeamStatus(npc_team,
                      {'revealed': 2,
                       'script': [[u'action 1'],
                                  [u'action 2', u'action 3'], 
-                                 [u'action 4', u'action 5']]}],
-                    [pc_team,
+                                 [u'action 4', u'action 5']]}),
+                    TeamStatus(pc_team,
                      {'revealed': 2,
                       'script': [[u'action 6'],
                                  [u'replacement action 8'],
-                                 u'<redacted>']}]]
+                                 u'<redacted>']})]
 
         assert expected == actual
 

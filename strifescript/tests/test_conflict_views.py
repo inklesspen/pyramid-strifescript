@@ -5,6 +5,7 @@ from nose import tools as nt
 from pyramid import testing
 
 from ..models import DBSession, User, Conflict, Team, NoResultFound
+from ..models import TeamStatus
 from .. import views, validation, models, acl
 
 from . import BaseTest
@@ -138,14 +139,14 @@ class TestConflictInfo(BaseTest):
 
         expected_exchanges = [
             [
-                [npc_team,
+                TeamStatus(npc_team,
                  {'revealed': 0,
                   'script': [[u'action 1'],
                              [u'action 2', u'action 3'],
-                             [u'action 4', u'action 5']]}],
-                [pc_team,
+                             [u'action 4', u'action 5']]}),
+                TeamStatus(pc_team,
                  {'revealed': 0,
-                  'script': [u'<redacted>', u'<redacted>', u'<redacted>']}]]]
+                  'script': [u'<redacted>', u'<redacted>', u'<redacted>']})]]
 
         assert expected_exchanges == actual['exchanges']
 
@@ -172,13 +173,13 @@ class TestConflictAction(BaseTest):
         conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert len(conflict.events) == 1
 
-        expected = [[npc_team,
+        expected = [TeamStatus(npc_team,
                      {'revealed': 0,
                       'script': [[u'action 1'],
                                  [u'action 2', u'action 3'], 
-                                 [u'action 4', u'action 5']]}],
-                    [pc_team,
-                     {'revealed': 0}]]
+                                 [u'action 4', u'action 5']]}),
+                    TeamStatus(pc_team,
+                     {'revealed': 0})]
 
         assert expected == conflict.generate_history()[0]
 

@@ -5,6 +5,7 @@ import pytest
 from nose import tools as nt
 
 from ..models import DBSession, User, Conflict, Team, SetScriptEvent, NoResultFound
+from ..models import TeamStatus
 from .. import views, validation, models, acl
 
 from . import BaseTest
@@ -19,16 +20,16 @@ class TestConflictHistory(BaseTest):
         npc_team = Team.query.get(fix.conflict_with_reveals.TeamData.npc_team.id)
         pc_team = Team.query.get(fix.conflict_with_reveals.TeamData.pc_team.id)
 
-        expected = [[[npc_team,
+        expected = [[TeamStatus(npc_team,
                      {'revealed': 2,
                       'script': [[u'action 1'],
                                  [u'action 2', u'action 3'], 
-                                 [u'action 4', u'action 5']]}],
-                    [pc_team,
+                                 [u'action 4', u'action 5']]}),
+                    TeamStatus(pc_team,
                      {'revealed': 1,
                       'script': [[u'action 6'],
                                  [u'action 7', u'action 8'],
-                                 [u'action 9', u'action 10']]}]]]
+                                 [u'action 9', u'action 10']]})]]
 
         actual = conflict.generate_history()
 
@@ -40,16 +41,16 @@ class TestConflictHistory(BaseTest):
         npc_team = Team.query.get(fix.conflict_with_changes.TeamData.npc_team.id)
         pc_team = Team.query.get(fix.conflict_with_changes.TeamData.pc_team.id)
 
-        expected = [[[npc_team,
+        expected = [[TeamStatus(npc_team,
                      {'revealed': 2,
                       'script': [[u'action 1'],
                                  [u'action 2', u'action 3'], 
-                                 [u'action 4', u'action 5']]}],
-                    [pc_team,
+                                 [u'action 4', u'action 5']]}),
+                    TeamStatus(pc_team,
                      {'revealed': 2,
                       'script': [[u'action 6'],
                                  [u'replacement action 8'],
-                                 [u'replacement action 10']]}]]]
+                                 [u'replacement action 10']]})]]
 
 
         actual = conflict.generate_history()

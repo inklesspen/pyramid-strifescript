@@ -1,16 +1,17 @@
 import copy
 
+from .models import TeamStatus
+
 def censor_exchange(exchange, user):
     retval = []
-    for team_pair in exchange:
-        to_censor = team_pair[:]
-        to_censor[1] = copy.deepcopy(team_pair[1])
-        if to_censor[0] not in user.teams:
-            team_val = to_censor[1]
-            revealed_count = team_val['revealed']
-            for i in range(revealed_count, len(team_val['script'])):
-                team_val['script'][i] = u'<redacted>'
-        retval.append(to_censor)
+    for team_status in exchange:
+        # The status must be deepcopied so we don't modify the original list.
+        status_to_censor = copy.deepcopy(team_status.status)
+        if team_status.team not in user.teams:
+            revealed_count = status_to_censor['revealed']
+            for i in range(revealed_count, len(status_to_censor['script'])):
+                status_to_censor['script'][i] = u'<redacted>'
+        retval.append(TeamStatus(team_status.team, status_to_censor))
     return retval
 
 def censor_conflict_history(conflict_history, user):

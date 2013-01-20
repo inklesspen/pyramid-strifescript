@@ -144,6 +144,8 @@ class Team(Tablename, Base):
             r['notes'] = self.notes
         return r
 
+TeamStatus = collections.namedtuple('TeamStatus', ('team', 'status'))
+
 class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
     teams = relationship('Team', backref='conflict', order_by='Team.id')
@@ -189,7 +191,7 @@ class Conflict(Tablename, Base):
                     volley.remove(event.forfeited_action)
                     i = volley.index(event.changed_action)
                     volley[i] = event.replacement_action
-            retval.append([team, teamretval])
+            retval.append(TeamStatus(team, teamretval))
 
         return retval
         
@@ -216,7 +218,7 @@ class Conflict(Tablename, Base):
         exchange_data = self.generate_exchange(exchange_events)
         exchange_dict = dict(exchange_data)
 
-        min_revealed = min(exchange_dict[team]['revealed'] for team in self.teams)
+        min_revealed = min(team_status.status['revealed'] for team_status in exchange_data)
         if min_revealed == 3:
             # All scripts in this exchange have been revealed, new exchange
             return {team: ['set-script'] for team in self.teams}
@@ -250,8 +252,7 @@ class Conflict(Tablename, Base):
         exchange_events = [e for e in self.events if e.exchange == last_seen_exchange]
 
         exchange_data = self.generate_exchange(exchange_events)
-
-        min_revealed = min(exchange_data[team.id]['revealed'] for team in self.teams)
+        min_revealed = min(team_status.status['revealed'] for team_status in exchange_data)
         if min_revealed == 3:
             # All scripts have been revealed, new exchange
             return last_seen_exchange + 1
@@ -309,6 +310,10 @@ class RevealVolleyEvent(Event):
     # which volley is to be revealed can be determined simply by counting how many revealvolleyevents there are for the team and exchange
     # which means we don't actually need a table for this class.
     __mapper_args__ = {'polymorphic_identity': 'reveal_volley_event'}
+
+    @classmethod
+    def from_validated(cls, validated):
+        return cls(team = validated['team'], exchange = validated['exchange'])
 
 class ChangeActionsEvent(Event, Tablename):
     __mapper_args__ = {'polymorphic_identity': 'change_actions_event'}
