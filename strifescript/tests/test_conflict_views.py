@@ -172,20 +172,6 @@ class TestConflictAction(BaseTest):
         conflict = Conflict.query.get(fix.bare_conflict.ConflictData.conflict.id)
         assert len(conflict.events) == 1
 
-        expected = {
-            npc_team.id: {
-                'script': [
-                    [u'action 1'],
-                    [u'action 2', u'action 3'],
-                    [u'action 4', u'action 5']
-                ],
-                'revealed': 0
-            },
-            pc_team.id: {
-                'revealed': 0
-            }
-        }
-
         expected = [[npc_team,
                      {'revealed': 0,
                       'script': [[u'action 1'],
