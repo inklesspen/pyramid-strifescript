@@ -18,9 +18,9 @@ from .models import (
 
 from . import validation, censoring
 
-@view_config(route_name='home', renderer='mytemplate.mako')
-def home(request):
-    return {'project': 'strifescript'}
+@view_config(route_name='app', renderer='app.mako')
+def app(request):
+    return {}
 
 @view_config(route_name='register', renderer='json')
 def register(request):
