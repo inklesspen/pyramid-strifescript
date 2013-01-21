@@ -101,7 +101,7 @@ def conflict_action(request):
     allowed_actions = conflict.allowed_actions()[team]
     if validated['action'] not in allowed_actions:
         request.response = HTTPBadRequest()
-        return {u'errors': validation.simple_errors(dict(action=u"That action is not allowed for that team"))}
+        return {u'errors': validation.simple_errors(action=u"That action is not allowed for that team")}
 
     current_exchange = conflict.current_exchange()
 
