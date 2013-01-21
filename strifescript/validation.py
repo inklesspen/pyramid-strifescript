@@ -11,6 +11,7 @@ from colander import (
     Integer,
     All,
     Length,
+    Range,
     Email,
     Invalid,
     Function,
@@ -120,6 +121,36 @@ class TeamAuthorization(MappingSchema):
 
 class SetScriptEvent(MappingSchema):
     script = colander.SchemaNode(colander.Sequence(), colander.SchemaNode(colander.Sequence(), colander.SchemaNode(colander.String()), validator=colander.Length(min=1)), validator=colander.Length(min=3, max=3))
+
+@colander.deferred
+def deferred_check_volley(node, kw):
+    script = kw.get('script')
+    if script is None:
+        raise Exception('must bind script')
+    def validator(node, value):
+        if len(script[value - 1]) > 2:
+            raise Invalid(node, "The specified volley does not have enough actions to change an action.")
+        return None
+    return All(Range(min=1, max=3), validator)
+
+class ChangeActionsVolleyCheck(MappingSchema):
+    volley_no = SchemaNode(Integer(), validator=deferred_check_volley)
+
+@colander.deferred
+def deferred_check_action_present(node, kw):
+    volley = kw.get('volley')
+    if volley is None:
+        raise Exception('must bind volley')
+    def validator(node, value):
+        if value not in volley:
+            raise Invalid(node, "The specified volley does not contain the action %r" % value)
+        return None
+    return validator
+
+class ChangeActionsEvent(MappingSchema):
+    forfeited_action = SchemaNode(String(), validator=deferred_check_action_present)
+    changed_action = SchemaNode(String(), validator=deferred_check_action_present)
+    replacement_action = SchemaNode(String(), validator=Length(min=1))
 
 def _add_messages(md, key, error_node):
     for msg in error_node.messages():

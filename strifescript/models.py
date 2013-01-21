@@ -323,3 +323,12 @@ class ChangeActionsEvent(Event, Tablename):
     forfeited_action = Column(UnicodeText, nullable=False)
     changed_action = Column(UnicodeText, nullable=False)
     replacement_action = Column(UnicodeText, nullable=False)
+
+    @classmethod
+    def from_validated(cls, validated):
+        return cls(team=validated['team'],
+                   exchange=validated['exchange'],
+                   volley_no=validated['volley_no'],
+                   forfeited_action=validated['forfeited_action'],
+                   changed_action=validated['changed_action'],
+                   replacement_action=validated['replacement_action'])

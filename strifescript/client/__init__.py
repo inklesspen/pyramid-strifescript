@@ -84,3 +84,18 @@ def reveal_volley(conflict_id, team_id):
     if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
         r.raise_for_status()
     return r.json()
+
+def change_actions(conflict_id, team_id, volley_no, forfeited, changed, replacement):
+    url = base + "/conflict/" + str(conflict_id) + "/action"
+    body = {
+        'action': 'change-actions',
+        'team': team_id,
+        'volley_no': volley_no,
+        'forfeited_action': forfeited,
+        'changed_action': changed,
+        'replacement_action': replacement
+    }
+    r = s.post(url, json.dumps(body), headers=headers)
+    if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
+        r.raise_for_status()
+    return r.json()

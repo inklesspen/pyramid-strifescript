@@ -12,6 +12,7 @@ from .models import (
     Conflict,
     SetScriptEvent,
     RevealVolleyEvent,
+    ChangeActionsEvent,
     NoResultFound
     )
 
@@ -117,6 +118,25 @@ def conflict_action(request):
     elif validated['action'] == 'reveal-volley':
         # No additional data needed.
         event = RevealVolleyEvent.from_validated({'team': team, 'exchange': current_exchange})
+    elif validated['action'] == 'change-actions':
+        info = conflict.for_json()
+        exchange_info = info['exchanges'][current_exchange - 1]
+        team_script = [team_status.status['script'] for team_status in exchange_info if team_status.team is team][0]
+        try:
+            validated = validation.ChangeActionsVolleyCheck().bind(script=team_script).deserialize(request.json_body)
+        except validation.Invalid, e:
+            request.response = HTTPBadRequest()
+            return {u'errors': validation.collect_errors(e)}
+        volley_no = validated['volley_no']
+        try:
+            validated = validation.ChangeActionsEvent().bind(volley=team_script[volley_no - 1]).deserialize(request.json_body)
+        except validation.Invalid, e:
+            request.response = HTTPBadRequest()
+            return {u'errors': validation.collect_errors(e)}
+        validated['team'] = team
+        validated['exchange'] = current_exchange
+        validated['volley_no'] = volley_no
+        event = ChangeActionsEvent.from_validated(validated)
     else:
         raise NotImplementedError()
 
