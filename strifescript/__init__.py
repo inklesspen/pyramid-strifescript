@@ -35,6 +35,7 @@ def main(global_config, **settings):
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
     config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
+    config.add_route('conflicts', '/conflicts', factory='strifescript.acl.Conflict')
     config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
     config.add_route('conflict.action', '/conflict/{id}/action', factory='strifescript.acl.Conflict')
     config.scan()

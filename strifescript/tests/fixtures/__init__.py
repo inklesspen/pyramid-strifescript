@@ -1,1 +1,1 @@
-import users, bare_conflict, archived_conflict, conflict_with_scripts, conflict_with_changes, conflict_exchange_fully_revealed, conflict_with_reveals
+import users, bare_conflict, archived_conflict, conflict_with_scripts, conflict_with_changes, conflict_exchange_fully_revealed, conflict_with_reveals, multiple_conflicts

@@ -269,6 +269,12 @@ class Conflict(Tablename, Base):
             'exchanges': self.generate_history()
         }
 
+    def basic_for_json(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
 # Events
 # Set script for the three volleys of the exchange, for a given team
 #   - active exchange

@@ -36,6 +36,13 @@ def logout():
         r.raise_for_status()
     return r.json()
 
+def list_conflicts():
+    url = base + "/conflicts"
+    r = s.get(url, headers=headers)
+    if r.status_code not in [requests.codes.ok, requests.codes.bad_request]:
+        r.raise_for_status()
+    return r.json()
+
 def construct_team(name, usernames, notes=None):
     t = {'name': name,
          'participants': usernames,

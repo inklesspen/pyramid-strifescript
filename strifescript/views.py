@@ -65,6 +65,10 @@ def logout(request):
     request.response.headers = headers
     return {}
 
+@view_config(route_name='conflicts', request_method='GET', renderer='json', permission='list')
+def list_conflicts(request):
+    return [conflict.basic_for_json() for conflict in request.current_user.conflicts]
+
 @view_config(route_name='conflict', request_method='POST', renderer='json', permission='create')
 def create_conflict(request):
     try:

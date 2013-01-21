@@ -37,4 +37,4 @@ class Conflict(Base):
             self.conflict = conflict
             self.__acl__ = [(Allow, user.id, ALL_PERMISSIONS) for user in conflict.users]
         else:
-            self.__acl__ = [(Allow, Authenticated, 'create')]
+            self.__acl__ = [(Allow, Authenticated, ('create', 'list'))]

@@ -13,6 +13,22 @@ from . import fixtures as fix
 
 from mock import MagicMock, patch, create_autospec
 
+class TestListConflicts(BaseTest):
+    def test(self):
+        self.add_fixtures(fix.multiple_conflicts.ConflictData)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+
+        request = testing.DummyRequest(method='GET', current_user=alice)
+        actual = views.list_conflicts(request)
+
+        expected = [
+            {'id': 1,
+             'name': u'The Glorious Battle'},
+            {'id': 2,
+             'name': u'Three-way'}
+        ]
+        assert expected == sorted(actual)
+
 class TestCreateConflict(BaseTest):
     def test_successful_create(self):
         self.add_fixtures(fix.users.UserData)
