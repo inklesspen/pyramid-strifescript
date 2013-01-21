@@ -100,6 +100,53 @@ class TestCensorExchange(BaseTest):
 
         assert expected == actual
 
+    def test_with_uneven_scripts(self):
+        self.add_fixtures(fix.conflict_with_scripts.ConflictData)
+        with transaction.manager:
+            conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+            DBSession.delete(conflict.events[1])
+
+        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
+
+        raw = conflict.generate_history()
+        exchange = raw[0]
+
+        for team_status in exchange:
+            if team_status.team is npc_team:
+                assert 'script' in team_status.status
+            if team_status.team is pc_team:
+                assert 'script' not in team_status.status
+
+        actual = censoring.censor_exchange(exchange, claire)
+
+        expected = [
+            TeamStatus(npc_team,
+                       {'revealed': 0,
+                        'script': [u'<redacted>', u'<redacted>', u'<redacted>']}),
+            TeamStatus(pc_team,
+                       {'revealed': 0})
+        ]
+
+        assert expected == actual
+
+        actual = censoring.censor_exchange(exchange, alice)
+
+        expected = [
+            TeamStatus(npc_team,
+                       {'revealed': 0,
+                        'script': [[u'action 1'],
+                                   [u'action 2', u'action 3'], 
+                                   [u'action 4', u'action 5']]}),
+            TeamStatus(pc_team,
+                       {'revealed': 0})
+        ]
+
+        assert expected == actual
+
 class TestCensorActions(BaseTest):
     def test_simple_case(self):
         self.add_fixtures(fix.bare_conflict.ConflictData)

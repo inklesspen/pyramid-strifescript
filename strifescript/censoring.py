@@ -8,7 +8,7 @@ def censor_exchange(exchange, user):
     for team_status in exchange:
         # The status must be deepcopied so we don't modify the original list.
         status_to_censor = copy.deepcopy(team_status.status)
-        if team_status.team not in user.teams:
+        if team_status.team not in user.teams and 'script' in status_to_censor:
             for i in range(min_reveal, len(status_to_censor['script'])):
                 status_to_censor['script'][i] = u'<redacted>'
         retval.append(TeamStatus(team_status.team, status_to_censor))
