@@ -1,6 +1,6 @@
 import copy
 
-from .models import TeamStatus
+from .models import TeamStatus, TeamActions
 
 def censor_exchange(exchange, user):
     retval = []
@@ -19,13 +19,10 @@ def censor_conflict_history(conflict_history, user):
 
 def censor_allowed_actions(actions, user):
     retval = []
-    for team_pair in actions:
-        # This is a bit awkward; we have to have a copy of the team/actions list.
-        # And also a copy of the actions list in that list.
-        # But we can't deepcopy the list because it has a Team object in it
-        to_censor = team_pair[:]
-        to_censor[1] = copy.deepcopy(team_pair[1])
-        if to_censor[0] not in user.teams and 'change-actions' in to_censor[1]:
-            to_censor[1].remove('change-actions')
-        retval.append(to_censor)
+    for team_actions in actions:
+        # The list of actions must be deepcopied so we don't modify the original.
+        actions_to_censor = copy.deepcopy(team_actions.actions)
+        if team_actions.team not in user.teams and 'change-actions' in actions_to_censor:
+            actions_to_censor.remove('change-actions')
+        retval.append(TeamActions(team_actions.team, actions_to_censor))
     return retval

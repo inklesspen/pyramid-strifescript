@@ -5,7 +5,7 @@ from nose import tools as nt
 from pyramid import testing
 
 from ..models import DBSession, User, Conflict, Team, NoResultFound
-from ..models import TeamStatus
+from ..models import TeamStatus, TeamActions
 from .. import views, validation, models, acl
 
 from . import BaseTest
@@ -82,8 +82,8 @@ class TestConflictInfo(BaseTest):
         assert expected_teams == actual['teams']
 
         expected_action_choices = [
-            [npc_team, ['set-script']],
-            [pc_team, ['set-script']]
+            TeamActions(npc_team, ['set-script']),
+            TeamActions(pc_team, ['set-script'])
         ]
 
         assert expected_action_choices == actual['action_choices']
@@ -128,8 +128,8 @@ class TestConflictInfo(BaseTest):
 
         # Alice is on the NPC team; she shouldn't see that the PC team can change actions
         expected_action_choices = [
-            [npc_team, ['reveal-volley', 'change-actions']],
-            [pc_team, ['reveal-volley']]
+            TeamActions(npc_team, ['reveal-volley', 'change-actions']),
+            TeamActions(pc_team, ['reveal-volley'])
         ]
 
         assert expected_action_choices == actual['action_choices']

@@ -145,6 +145,7 @@ class Team(Tablename, Base):
         return r
 
 TeamStatus = collections.namedtuple('TeamStatus', ('team', 'status'))
+TeamActions = collections.namedtuple('TeamActions', ('team', 'actions'))
 
 class Conflict(Tablename, Base):
     name = Column(Unicode(100), nullable=False)
@@ -264,7 +265,7 @@ class Conflict(Tablename, Base):
             'id': self.id,
             'name': self.name,
             'teams': [team.for_json() for team in self.teams],
-            'action_choices': [[team, actions[team]] for team in self.teams],
+            'action_choices': [TeamActions(team, actions[team]) for team in self.teams],
             'exchanges': self.generate_history()
         }
 

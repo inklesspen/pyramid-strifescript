@@ -5,7 +5,7 @@ import pytest
 from nose import tools as nt
 
 from ..models import DBSession, User, Conflict, Team, SetScriptEvent, NoResultFound
-from ..models import TeamStatus
+from ..models import TeamStatus, TeamActions
 from .. import views, validation, models, acl, censoring
 
 from . import BaseTest
@@ -156,29 +156,29 @@ class TestCensorActions(BaseTest):
         pc_team = Team.query.get(2)
 
         actions = [
-            [npc_team, ['set-script']],
-            [pc_team, ['set-script']]
+            TeamActions(npc_team, ['set-script']),
+            TeamActions(pc_team, ['set-script'])
         ]
 
         assert actions == censoring.censor_allowed_actions(actions, alice)
         assert actions == censoring.censor_allowed_actions(actions, claire)
 
         actions = [
-            [npc_team, ['reveal-volley', 'change-actions']],
-            [pc_team, ['reveal-volley', 'change-actions']]
+            TeamActions(npc_team, ['reveal-volley', 'change-actions']),
+            TeamActions(pc_team, ['reveal-volley', 'change-actions'])
         ]
 
         expected = [
-            [npc_team, ['reveal-volley', 'change-actions']],
-            [pc_team, ['reveal-volley']]
+            TeamActions(npc_team, ['reveal-volley', 'change-actions']),
+            TeamActions(pc_team, ['reveal-volley'])
         ]
 
         assert alice in npc_team.users and alice not in pc_team.users
         assert expected == censoring.censor_allowed_actions(actions, alice)
 
         expected = [
-            [npc_team, ['reveal-volley']],
-            [pc_team, ['reveal-volley', 'change-actions']]
+            TeamActions(npc_team, ['reveal-volley']),
+            TeamActions(pc_team, ['reveal-volley', 'change-actions'])
         ]
 
         assert claire in pc_team.users and claire not in npc_team.users
