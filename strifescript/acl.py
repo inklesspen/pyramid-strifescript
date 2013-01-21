@@ -35,4 +35,6 @@ class Conflict(Base):
                 raise HTTPNotFound()
 
             self.conflict = conflict
-            self.__acl__ = [(Allow, user.id, 'change') for user in conflict.users]
+            self.__acl__ = [(Allow, user.id, ALL_PERMISSIONS) for user in conflict.users]
+        else:
+            self.__acl__ = [(Allow, Authenticated, 'create')]

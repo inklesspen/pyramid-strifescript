@@ -65,7 +65,7 @@ def logout(request):
     request.response.headers = headers
     return {}
 
-@view_config(route_name='conflict', request_method='POST', renderer='json')
+@view_config(route_name='conflict', request_method='POST', renderer='json', permission='create')
 def create_conflict(request):
     try:
         validated = validation.Conflict().bind(current_user=request.current_user).deserialize(request.json_body)
@@ -79,7 +79,7 @@ def create_conflict(request):
 
     return {'id': conflict.id}
 
-@view_config(route_name='conflict_id', request_method='GET', renderer='json')
+@view_config(route_name='conflict_id', request_method='GET', renderer='json', permission='view')
 def conflict_info(request):
     conflict = request.context.conflict
     # TODO: censoring needs to be a separate step
@@ -89,7 +89,7 @@ def conflict_info(request):
     info['exchanges'] = censoring.censor_conflict_history(info['exchanges'], request.current_user)
     return info
 
-@view_config(route_name='conflict.action', request_method='POST', renderer='json')
+@view_config(route_name='conflict.action', request_method='POST', renderer='json', permission='action')
 def conflict_action(request):
     conflict = request.context.conflict
     try:
