@@ -25,15 +25,11 @@
   <script src="${request.static_path('strifescript:static/js/filters.js')}"></script>
   <script src="${request.static_path('strifescript:static/js/directives.js')}"></script>
 
-  <script type="text/ng-template" id="partial1">
-  <p>This is the partial for view 1.</p>
-  </script>
-  <script type="text/ng-template" id="partial2">
-  <p>This is the partial for view 2.</p>
-  <p>
-    Showing of 'interpolate' filter:
-    {{ 'Current version is v%VERSION%.' | interpolate }}
-  </p>
-  </script>
+% for partial in ['partial1', 'partial2']:
+<script type="text/ng-template" id="${partial}">
+<%include file="strifescript:templates/partials/${partial}.mako" />
+</script>
+% endfor
+
 </body>
 </html>
