@@ -1,4 +1,4 @@
-'use strict';
+'use strict'; /* global describe, beforeEach, module, it, inject, expect */
 
 /* jasmine specs for services go here */
 
