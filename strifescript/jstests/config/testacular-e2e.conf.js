@@ -12,9 +12,10 @@ browsers = ['Chrome'];
 
 singleRun = true;
 
+urlRoot = '/__testacular/';
+
 proxies = {
-  '/app': 'http://localhost:6543/app',
-  '/static': 'http://localhost:6543/static'
+  '/': 'http://localhost:6543/'
 };
 
 junitReporter = {
