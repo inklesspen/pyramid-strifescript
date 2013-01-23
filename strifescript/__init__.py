@@ -10,6 +10,20 @@ from .models import (
 
 from .acl import get_principals, get_user
 
+def add_routes(config):
+    config.add_static_view('static', 'static', cache_max_age=3600)
+    config.add_route('app', '/app')
+    config.add_route('register', '/register')
+    config.add_route('login', '/login')
+    config.add_route('logout', '/logout')
+    config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
+    config.add_route('conflicts', '/conflicts', factory='strifescript.acl.Conflict')
+    config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
+    config.add_route('conflict.action', '/conflict/{id}/action', factory='strifescript.acl.Conflict')
+
+def add_request_methods(config):
+    config.add_request_method(get_user, 'current_user', property=True, reify=True)
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -27,16 +41,8 @@ def main(global_config, **settings):
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
 
-    config.add_request_method(get_user, 'current_user', property=True, reify=True)
+    config.include(add_request_methods)
+    config.include(add_routes)
 
-    config.add_static_view('static', 'static', cache_max_age=3600)
-    config.add_route('app', '/app')
-    config.add_route('register', '/register')
-    config.add_route('login', '/login')
-    config.add_route('logout', '/logout')
-    config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
-    config.add_route('conflicts', '/conflicts', factory='strifescript.acl.Conflict')
-    config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
-    config.add_route('conflict.action', '/conflict/{id}/action', factory='strifescript.acl.Conflict')
     config.scan()
     return config.make_wsgi_app()
