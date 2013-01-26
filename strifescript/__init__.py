@@ -13,14 +13,13 @@ from .acl import get_principals, get_user
 def add_routes(config):
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
-    config.add_route('app', '/app')
-    config.add_route('register', '/register')
-    config.add_route('login', '/login')
-    config.add_route('logout', '/logout')
-    config.add_route('conflict', '/conflict', factory='strifescript.acl.Conflict')
-    config.add_route('conflicts', '/conflicts', factory='strifescript.acl.Conflict')
-    config.add_route('conflict_id', '/conflict/{id}', factory='strifescript.acl.Conflict')
-    config.add_route('conflict.action', '/conflict/{id}/action', factory='strifescript.acl.Conflict')
+    config.add_route('register', '/api/register')
+    config.add_route('login', '/api/login')
+    config.add_route('logout', '/api/logout')
+    config.add_route('conflict', '/api/conflict', factory='strifescript.acl.Conflict')
+    config.add_route('conflicts', '/api/conflicts', factory='strifescript.acl.Conflict')
+    config.add_route('conflict_id', '/api/conflict/{id}', factory='strifescript.acl.Conflict')
+    config.add_route('conflict.action', '/api/conflict/{id}/action', factory='strifescript.acl.Conflict')
 
 def add_request_methods(config):
     config.add_request_method(get_user, 'current_user', property=True, reify=True)

@@ -2,7 +2,7 @@ import requests, json
 
 s = requests.Session()
 
-base = "http://0.0.0.0:6543"
+base = "http://0.0.0.0:6543/api"
 headers = {'content-type': 'application/json'}
 
 def register(username, password, email=None):

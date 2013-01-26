@@ -18,12 +18,8 @@ from .models import (
 
 from . import validation, censoring
 
-@view_config(route_name='home', renderer='strifescript:templates/home.mako')
+@view_config(route_name='home', renderer='strifescript:templates/app.mako')
 def home(request):
-    return {}
-
-@view_config(route_name='app', renderer='strifescript:templates/app.mako')
-def app(request):
     return {}
 
 @view_config(route_name='register', renderer='json')
