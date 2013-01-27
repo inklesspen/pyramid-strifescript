@@ -31,7 +31,7 @@
 // });
 
 describe('controllers', function() {
-  beforeEach(module('myApp.controllers'));
+  beforeEach(module('strifescript.controllers'));
 
   describe('MyCtrl1', function() {
 

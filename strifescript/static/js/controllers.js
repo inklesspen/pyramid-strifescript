@@ -2,6 +2,6 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', []).
+angular.module('strifescript.controllers', []).
   controller('MyCtrl1', [function() {}]).
   controller('MyCtrl2', [function() {}]);
