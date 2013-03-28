@@ -6,7 +6,15 @@
 // Demonstrate how to register services
 // In this case it is a simple value service.
 angular.module('strifescript.services', []).
-  factory('loginKeeper', ['$q', function($q) {
+  factory('loginKeeper', [function() {
+    var current = {};
+    return {
+      isLoggedIn: function() {
+        return false;
+      }
+    };
+  }]).
+  factory('oldloginKeeper', ['$q', function($q) {
     var loginRequiredCallback = angular.noop();
     var currentUsername = null;
     var currentPromise = null;
