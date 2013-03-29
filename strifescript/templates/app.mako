@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>My AngularJS App</title>
+  <link rel="stylesheet" href="${request.static_path('strifescript:static/vendor/bootstrap-2.3.1/css/bootstrap.css')}"/>
   <link rel="stylesheet" href="${request.static_path('strifescript:static/css/app.css')}"/>
 </head>
 <body>
