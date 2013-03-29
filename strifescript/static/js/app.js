@@ -5,15 +5,9 @@
 angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifescript.directives', 'strifescript.filters', 'strifescript.services']).
   config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
     $stateProvider.
-      state('view1', {
-        url: '/view1',
-        templateUrl: 'partial1',
-        controller: 'MyCtrl1'
-      }).
-      state('view2', {
-        url: '/view2',
-        templateUrl: 'partial2',
-        controller: 'MyCtrl2'
+      state('home', {
+        url: '/',
+        templateUrl: 'home'
       }).
       state('login', {
         templateUrl: 'login_register',
@@ -27,7 +21,7 @@ angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifes
         auth: true
       });
 
-    $urlRouterProvider.otherwise('view1');
+    $urlRouterProvider.otherwise('/');
   }]).
   run(['$rootScope', 'loginKeeper', '$state', function($rootScope, loginKeeper, $state) {
     $rootScope.$on('$stateChangeStart', function(event, to, toParams, from, fromParams) {

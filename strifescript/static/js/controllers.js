@@ -12,6 +12,4 @@ angular.module('strifescript.controllers', []).
       $state.transitionTo($state.params.next);
     };
     console.log($state);
-  }]).
-  controller('MyCtrl1', [function() {}]).
-  controller('MyCtrl2', [function() {}]);
+  }]);
