@@ -15,6 +15,11 @@ angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifes
         templateUrl: 'partial2',
         controller: 'MyCtrl2'
       }).
+      state('login', {
+        templateUrl: 'login_register',
+        controller: 'LoginRegisterCtrl',
+        params: ['next']
+      }).
       state('overview', {
         url: '/me',
         templateUrl: 'user_overview',
@@ -29,7 +34,8 @@ angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifes
 //      console.log([event, to, toParams, from, fromParams]);
       if (to.auth && !loginKeeper.isLoggedIn()) {
         event.preventDefault();
-        $state.transitionTo('view1');
+        // TODO: find some way of preserving the next stateParams?
+        $state.transitionTo('login', {next: to.name});
       }
     });
   }]);

@@ -7,10 +7,18 @@
 // In this case it is a simple value service.
 angular.module('strifescript.services', []).
   factory('loginKeeper', [function() {
-    var current = {};
+    var current = {
+      username: null
+    };
     return {
       isLoggedIn: function() {
-        return false;
+        return current.username !== null;
+      },
+      getUsername: function(username) {
+        return current.username;
+      },
+      setUsername: function(username) {
+        current.username = username;
       }
     };
   }]).
