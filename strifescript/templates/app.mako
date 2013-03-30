@@ -7,23 +7,25 @@
   <link rel="stylesheet" href="${request.static_path('strifescript:static/css/app.css')}"/>
 </head>
 <body>
-  <div >
-  
+  <div ng-controller="PreloadCtrl" ng-init="setUsername(${('\'' + request.current_user.username + '\'') if request.current_user is not None else 'null'})"></div>
+  <div class="container">
+    <div class="navbar" ng-controller="MenuBarCtrl">
+      <div class="navbar-inner">
+        <a class="brand" href="#/">Strifescript</a>
+        <ul class="nav">
+          <li ng-class="isActive('home')"><a href="#/">Home</a></li>
+          <li ng-class="isActive('overview')"><a href="#/me">Account Overview</a></li>
+        </ul>
+      </div>
+    </div>
     
-    <div>
-      <ul class="menu">
-        <li><a href="#/">home</a></li>
-        <li><a href="#/me">me</a></li>
-      </ul>
 
       <div ui-view></div>
 
-    </div>
   </div>
 
-  <!-- In production use:
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
-  -->
+  <script src="${request.static_path('strifescript:static/vendor/jquery-1.8.3.min.js')}"></script>
+  <script src="${request.static_path('strifescript:static/vendor/bootstrap-2.3.1/js/bootstrap.js')}"></script>
   <script src="${request.static_path('strifescript:static/lib/angular/angular.js')}"></script>
   <script src="${request.static_path('strifescript:static/lib/angular-ui-states.js')}"></script>
   <script src="${request.static_path('strifescript:static/js/app.js')}"></script>

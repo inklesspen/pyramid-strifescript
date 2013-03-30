@@ -22,6 +22,31 @@ angular.module('strifescript.services', []).
       }
     };
   }]).
+  factory('api', ['$http', '$q', function($http, $q) {
+    return {
+      register: function(username, password, email) {
+        var args = {'username': username, 'password': password};
+        if (email) {
+          args['email'] = email;
+        }
+        return $http.post('/api/register', args).then(function(response) {
+          if (response.data.errors) {
+            return $q.reject(response.data.errors);
+          }
+          return username;
+        });
+      },
+      login: function(username, password) {
+        var args = {'username': username, 'password': password};
+        return $http.post('/api/login', args).then(function(response) {
+          if (response.data.errors) {
+            return $q.reject(response.data.errors);
+          }
+          return response.data['current_user'];
+        });
+      }
+    };
+  }]).
   factory('oldloginKeeper', ['$q', function($q) {
     var loginRequiredCallback = angular.noop();
     var currentUsername = null;
