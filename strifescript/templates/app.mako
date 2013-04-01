@@ -16,6 +16,10 @@
           <li ng-class="isActive('home')"><a href="#/">Home</a></li>
           <li ng-class="isActive('overview')"><a href="#/me">Account Overview</a></li>
         </ul>
+
+        <ul class="nav pull-right" ng-show="loggedIn">
+          <li><a href="#" ng-click="logout()">Logout</a></li>
+        </ul>
       </div>
     </div>
     

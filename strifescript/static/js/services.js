@@ -44,6 +44,14 @@ angular.module('strifescript.services', []).
           }
           return response.data['current_user'];
         });
+      },
+      logout: function() {
+        return $http.post('/api/logout', {}).then(function(response) {
+          if (response.data.errors) {
+            return $q.reject(response.data.errors);
+          }
+          return null;
+        });
       }
     };
   }]).
