@@ -5,6 +5,7 @@
   <title>My AngularJS App</title>
   <link rel="stylesheet" href="${request.static_path('strifescript:static/vendor/bootstrap-2.3.1/css/bootstrap.css')}"/>
   <link rel="stylesheet" href="${request.static_path('strifescript:static/css/app.css')}"/>
+  <link href="${request.static_path('strifescript:static/vendor/angular-ui-0.4.0/angular-ui.css')}" rel="stylesheet">
 </head>
 <body>
   <div ng-controller="PreloadCtrl" ng-init="setUsername(${('\'' + request.current_user.username + '\'') if request.current_user is not None else 'null'})"></div>
@@ -29,8 +30,10 @@
   </div>
 
   <script src="${request.static_path('strifescript:static/vendor/jquery-1.8.3.min.js')}"></script>
+  <script src="${request.static_path('strifescript:static/vendor/lodash-1.1.1.js')}"></script>
   <script src="${request.static_path('strifescript:static/vendor/bootstrap-2.3.1/js/bootstrap.js')}"></script>
   <script src="${request.static_path('strifescript:static/lib/angular/angular.js')}"></script>
+  <script src="${request.static_path('strifescript:static/vendor/angular-ui-0.4.0/angular-ui.js')}" type="text/javascript" charset="utf-8"></script>
   <script src="${request.static_path('strifescript:static/lib/angular-ui-states.js')}"></script>
   <script src="${request.static_path('strifescript:static/js/app.js')}"></script>
   <script src="${request.static_path('strifescript:static/js/services.js')}"></script>
