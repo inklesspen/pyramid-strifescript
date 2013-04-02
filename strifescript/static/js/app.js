@@ -2,7 +2,7 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifescript.directives', 'strifescript.filters', 'strifescript.services']).
+angular.module('strifescript', ['ui', 'ui.state', 'strifescript.controllers', 'strifescript.directives', 'strifescript.filters', 'strifescript.services']).
   config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
     $stateProvider.
       state('home', {
@@ -18,6 +18,12 @@ angular.module('strifescript', ['ui.state', 'strifescript.controllers', 'strifes
         url: '/me',
         templateUrl: 'user_overview',
         controller: 'UserOverviewCtrl',
+        auth: true
+      }).
+      state('conflict', {
+        url: '/conflict/:conflictId',
+        templateUrl: 'conflict',
+        controller: 'ConflictCtrl',
         auth: true
       });
 

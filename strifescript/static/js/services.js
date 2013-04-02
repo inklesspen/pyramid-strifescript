@@ -52,6 +52,16 @@ angular.module('strifescript.services', []).
           }
           return null;
         });
+      },
+      list_conflicts: function() {
+        return $http.get('/api/conflicts').then(function(response) {
+          return response.data;
+        });
+      },
+      get_conflict: function(id) {
+        return $http.get('/api/conflict/' + id).then(function(response) {
+          return response.data;
+        });
       }
     };
   }]).

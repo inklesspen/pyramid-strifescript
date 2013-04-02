@@ -21,8 +21,44 @@ angular.module('strifescript.controllers', []).
       });
     };
   }]).
-  controller('UserOverviewCtrl', ['$scope', 'loginKeeper', function($scope, loginKeeper) {
+  controller('UserOverviewCtrl', ['$scope', 'loginKeeper', 'api', function($scope, loginKeeper, api) {
     $scope.user = {'username': loginKeeper.getUsername()};
+    api.list_conflicts().then(function(conflicts) {
+      $scope.conflicts = conflicts;
+    });
+  }]).
+  controller('ConflictCtrl', ['$scope', '$state', 'api', 'loginKeeper', function($scope, $state, api, loginKeeper) {
+    $scope.isArray = angular.isArray;
+    $scope.isString = angular.isString;
+    var deconstruct = function(conflict) {
+      var username = loginKeeper.getUsername();
+      _.forEach(conflict.teams, function(team) {
+        team.myTeam = _.contains(team.participants, username);
+      });
+      
+      $scope.teamIds = _.pluck(conflict.teams, 'id');
+      $scope.teams = _.zipObject($scope.teamIds, conflict.teams);
+
+      $scope.currentExchange = _.zipObject(_.last(conflict.exchanges));
+
+      $scope.pastExchanges = _.map(_.initial(conflict.exchanges), function(exchange, i) {return [i+1, _.zipObject(exchange)];});
+      $scope.pastExchanges.reverse();
+
+      $scope.actionChoices = _.zipObject(conflict.action_choices);
+
+//      var exchangesByTeam = _.map(conflict.exchanges, function(exchange) {return _.zipObject(exchange);});
+      
+//      $scope.teamExchanges = _.zipObject($scope.teamIds, conflict.
+
+      $scope.teamIds.sort();
+
+    };
+
+    api.get_conflict($state.params.conflictId).then(function(conflict) {
+      console.log(conflict);
+      deconstruct(conflict);
+      $scope.conflict = conflict;
+    });
   }]).
   controller('LoginRegisterCtrl', ['$scope', '$state', 'api', 'loginKeeper', function($scope, $state, api, loginKeeper) {
     var go = function(username) {

@@ -1,2 +1,6 @@
 /* app css stylesheet */
 
+.hidden-volley {
+  color: gray;
+  font-style: italic;
+}

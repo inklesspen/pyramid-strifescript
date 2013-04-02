@@ -41,7 +41,7 @@
   <script src="${request.static_path('strifescript:static/js/filters.js')}"></script>
   <script src="${request.static_path('strifescript:static/js/directives.js')}"></script>
 
-% for partial in ['home', 'user_overview', 'login_register']:
+% for partial in ['home', 'user_overview', 'login_register', 'conflict']:
 <script type="text/ng-template" id="${partial}">
 <%include file="strifescript:templates/partials/${partial}.mako" />
 </script>
