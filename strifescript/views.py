@@ -132,11 +132,21 @@ def conflict_action(request):
             request.response = HTTPBadRequest()
             return {u'errors': validation.collect_errors(e)}
         volley_no = validated['volley_no']
+        volley = team_script[volley_no - 1]
         try:
-            validated = validation.ChangeActionsEvent().bind(volley=team_script[volley_no - 1]).deserialize(request.json_body)
+            validated = validation.ChangeActionsEvent().bind(volley=volley).deserialize(request.json_body)
         except validation.Invalid, e:
             request.response = HTTPBadRequest()
             return {u'errors': validation.collect_errors(e)}
+
+        # You should not be able to specify the same action both for forfeiting and changing
+        # unless the original script had that action twice.
+        if validated['forfeited_action'] == validated['changed_action'] and volley.count(validated['forfeited_action']) < 2:
+            request.response = HTTPBadRequest()
+            errormsg = u"You cannot change the action you forfeited."
+            errordict = {'forfeited_action': errormsg, 'changed_action': errormsg}
+            return {u'errors': validation.simple_errors(**errordict)}
+
         validated['team'] = team
         validated['exchange'] = current_exchange
         validated['volley_no'] = volley_no

@@ -271,6 +271,35 @@ class TestConflictAction(BaseTest):
 
         assert expected[0] == conflict.generate_history()[0][0]
 
+    def test_change_actions_incorrectly(self):
+        self.add_fixtures(fix.conflict_with_scripts.ConflictData)
+
+        alice = User.query.filter_by(username=fix.users.UserData.alice.username).one()
+        claire = User.query.filter_by(username=fix.users.UserData.claire.username).one()
+        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+        npc_team = Team.query.filter_by(conflict=conflict, name=u"NPC Team").one()
+        pc_team = Team.query.filter_by(conflict=conflict, name=u"PC Team").one()
+
+        request_body = {
+            'action': 'change-actions',
+            'team': npc_team.id,
+            'volley_no': 2,
+            'forfeited_action': u'action 2',
+            'changed_action': u'action 2',
+            'replacement_action': u'changed'
+        }
+        request_body = json.loads(json.dumps(request_body))
+        request = testing.DummyRequest(json_body=request_body, method='POST', current_user=alice, matchdict=dict(id=conflict.id))
+        request.context = acl.Conflict(request)
+        actual = views.conflict_action(request)
+
+        assert 'errors' in actual
+        assert 'forfeited_action' in actual['errors']
+        assert 'changed_action' in actual['errors']
+
+        conflict = Conflict.query.get(fix.conflict_with_scripts.ConflictData.conflict.id)
+        assert len(conflict.events) == 2
+
 class TestArchiveConflict(BaseTest):
     def test_archive(self):
         self.add_fixtures(fix.bare_conflict.ConflictData)
