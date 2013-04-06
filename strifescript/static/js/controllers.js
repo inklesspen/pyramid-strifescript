@@ -30,6 +30,17 @@ angular.module('strifescript.controllers', []).
   controller('ConflictCtrl', ['$scope', '$state', 'api', 'loginKeeper', function($scope, $state, api, loginKeeper) {
     $scope.isArray = angular.isArray;
     $scope.isString = angular.isString;
+
+    var actionHandlers = {
+      'set-script': function(teamId) {},
+      'reveal-volley': function(teamId) {},
+      'change-actions': function(teamId) {}
+    };
+
+    $scope.doAction = function(teamId, choice) {
+      actionHandlers[choice](teamId);
+    };
+
     var deconstruct = function(conflict) {
       var username = loginKeeper.getUsername();
       _.forEach(conflict.teams, function(team) {

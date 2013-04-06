@@ -1,3 +1,4 @@
+<h1><small>Teams</small></h1>
 <ul>
   <li ng-repeat="team in conflict.teams">
     <b>{{team.name}}</b><br>
@@ -14,7 +15,7 @@
   <caption>Exchange {{conflict.exchanges.length}}</caption>
   <thead>
     <tr>
-      <th>Team</th><th>Volley 1</th><th>Volley 2</th><th>Volley 3</th><th>Actions</th>
+      <th>Team</th><th>Volley 1</th><th>Volley 2</th><th>Volley 3</th><th>Permitted Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -27,9 +28,12 @@
         </span>
         <span ui-if="isString(volley)" class="hidden-volley">hidden</span>
       </td>
-      <td>
-        <span ng-repeat="choice in actionChoices[teamId]"><span ui-if="! $first">| </span><span>{{choice}}</span>
-        </td>
+      <td ui-if="teams[teamId].myTeam">
+        <span class="btn-group"><a class="btn" ng-repeat="choice in actionChoices[teamId]" ng-click="doAction(teamId, choice)">{{choice}}</a></span>
+      </td>
+      <td ui-if="! teams[teamId].myTeam">
+        <span ng-repeat="choice in actionChoices[teamId]"><span ui-if="! $first">| </span><span>{{choice}}</span></span>
+      </td>
     </tr>
   </tbody>
 </table>
